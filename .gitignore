@@ -1,0 +1,16 @@
+# Dependências
+node_modules/
+/backend/node_modules/
+/frontend/node_modules/
+
+# Credenciais e Variáveis de Ambiente
+.env
+*.pem
+*.key
+backend/config/google-credentials.json
+
+# Builds e Logs
+/frontend/dist/
+/frontend/build/
+npm-debug.log
+.DS_Store
