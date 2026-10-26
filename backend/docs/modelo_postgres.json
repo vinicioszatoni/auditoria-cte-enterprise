@@ -1,0 +1,26 @@
+{
+  "tabela": "log_auditoria_taxas",
+  "descricao": "Tabela normalizada (Row-Based) para registo transacional das decisões de auditoria de fretes por taxa.",
+  "colunas": [
+    { "nome": "id_log", "tipo": "SERIAL", "pk": true, "descricao": "Identificador único da transação." },
+    { "nome": "chave_cte", "tipo": "VARCHAR(44)", "descricao": "Chave de acesso do CT-e." },
+    { "nome": "transportador", "tipo": "VARCHAR(100)", "descricao": "Nome da transportadora." },
+    { "nome": "tipo_taxa", "tipo": "VARCHAR(50)", "descricao": "Ex: FRETE_PESO, PEDAGIO, SECCAT." },
+    { "nome": "tabela_ariba", "tipo": "VARCHAR(100)", "descricao": "Tabela de preço utilizada como base." },
+    { "nome": "vigencia_inicio", "tipo": "DATE", "descricao": "Data de início da vigência da tabela." },
+    { "nome": "vigencia_fim", "tipo": "DATE", "descricao": "Data de fim da vigência da tabela." },
+    { "nome": "tarifa_calculada", "tipo": "NUMERIC(10,2)", "descricao": "Valor total calculado pelo sistema." },
+    { "nome": "tarifa_cobrada", "tipo": "NUMERIC(10,2)", "descricao": "Valor total cobrado no documento." },
+    { "nome": "valor_diferenca", "tipo": "NUMERIC(10,2)", "descricao": "Diferença financeira (Cobrado - Calculado)." },
+    { "nome": "decisao", "tipo": "VARCHAR(20)", "descricao": "APROVADO ou REPROVADO." },
+    { "nome": "motivo_recusa", "tipo": "VARCHAR(100)", "descricao": "Motivo parametrizado selecionado no dropdown." },
+    { "nome": "observacao", "tipo": "TEXT", "descricao": "Texto livre inserido pelo analista." },
+    { "nome": "origem_auditoria", "tipo": "VARCHAR(20)", "descricao": "MASSA ou INDIVIDUAL." },
+    { "nome": "usuario_email", "tipo": "VARCHAR(100)", "descricao": "E-mail corporativo do auditor via SSO." },
+    { "nome": "criado_em", "tipo": "TIMESTAMP", "default": "NOW()", "descricao": "Data e hora exata do registo." }
+  ],
+  "indices_recomendados": [
+    "CREATE INDEX idx_log_chave_cte ON log_auditoria_taxas(chave_cte);",
+    "CREATE INDEX idx_log_tipo_taxa ON log_auditoria_taxas(tipo_taxa);"
+  ]
+}
