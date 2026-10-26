@@ -1,0 +1,319 @@
+/* ================== GOOGLE FONTS ================== */
+@import url('https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap');
+
+/* ================== DESTRAVAR TELA CHEIA (VITE/REACT) ================== */
+html, body, #root {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  min-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: hidden;
+}
+
+/* ================== DESIGN TOKENS ================== */
+:root {
+  /* Tipografia */
+  --font-urbanist: 'Urbanist', sans-serif;
+  --font-base: 14px;
+
+  /* Fundo e Textos */
+  --bg-page: #E6ECEF;
+  --text-main: #14202A;
+  --text-secondary: #4C5A65;
+  --text-aux: #5F6D78;
+
+  /* Primárias e Destaques */
+  --primary: #2A6F9A;
+  --primary-soft: #DCEDE3;
+  --dark-highlight: #1F4D6A;
+
+  /* Backgrounds Gradientes Pastéis */
+  --grad-a: #BCD9F2;
+  --grad-b: #BFE6D6;
+  --grad-c: #F6CFC7;
+
+  /* Cards e Glassmorphism */
+  --card-glass: rgba(255, 255, 255, 0.5); /* Branco 50% para efeito de vidro */
+  --card-solid: #FFFFFF;
+  --card-blue: #A9D2F1;
+  --card-green: #A7E1CA;
+  --card-yellow: #F1E08F;
+  --card-coral: #F6B4A3;
+
+  /* Gráficos (Tema Claro) */
+  --chart-1: #2A6F9A;
+  --chart-2: #8EC3EA;
+  --chart-3: #2F9A7E;
+  --chart-4: #DF7659;
+  --chart-5: #CF9426;
+
+  /* Cores Semânticas / Status */
+  --status-success-txt: #22735C;
+  --status-success-bg: #D5EEE4;
+  --status-error-txt: #B1412A;
+  --status-error-bg: #F8E1DA;
+  --status-warn-txt: #85580A;
+  --status-warn-bg: #F5EAD2;
+
+  /* Bordas e Formas */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+}
+
+/* ================== RESET GLOBAL ================== */
+body {
+  font-family: var(--font-urbanist);
+  font-weight: 500; /* Urbanist Medium */
+  background: linear-gradient(135deg, var(--grad-a), var(--grad-b), var(--grad-c));
+  background-attachment: fixed;
+  color: var(--text-main);
+  margin: 0;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Utilitário para Números Tabulares (Alinhamento perfeito de valores em R$) */
+.tabular-nums {
+  font-family: var(--font-urbanist);
+  font-weight: 600; /* Urbanist SemiBold */
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Utilitário de Glassmorphism Genérico */
+.glass-panel {
+  background-color: var(--card-glass);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+}
+
+body { 
+  font-family: var(--font-family); 
+  background-color: var(--cor-fundo); 
+  color: var(--cor-texto); 
+  margin: 0;
+  overflow: hidden; /* Trava o scroll global da página */
+}
+
+/* ================== LAYOUT PRINCIPAL ================== */
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* ================== MENU LATERAL (SIDEBAR) ================== */
+.sidebar {
+  background-color: var(--cor-menu);
+  color: var(--cor-branco);
+  width: 250px;
+  min-width: 250px; /* Garante que o menu nunca encolha */
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+  z-index: 100;
+  border-radius: 0 4px 4px 0;
+}
+
+/* ================== CONTEÚDO PRINCIPAL ================== */
+.main-area {
+  flex: 1; /* Faz a área direita ocupar todo o espaço restante */
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: auto; /* Rola apenas o conteúdo, o menu fica fixo */
+}
+
+.sidebar-logo {
+  padding: 25px 20px;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  color: var(--cor-branco);
+}
+
+.sidebar-menu {
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.menu-section {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,0.5);
+  margin: 15px 0 5px 15px;
+  font-weight: 700;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  border-radius: 6px;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+
+.menu-item:hover {
+  background-color: rgba(255,255,255,0.1);
+  color: var(--cor-branco);
+}
+
+.menu-item.active {
+  background-color: rgba(255,255,255,0.2);
+  color: var(--cor-branco);
+  font-weight: 700;
+  border-left: 4px solid var(--cor-branco);
+  border-radius: 0 6px 6px 0;
+}
+
+.menu-icon {
+  margin-right: 12px;
+  font-size: 16px;
+}
+
+/* ================== CONTEÚDO PRINCIPAL ================== */
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: auto; /* Permite rolar apenas a área de conteúdo direita */
+}
+
+.topbar {
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.breadcrumb-text {
+  font-size: 13px;
+  color: var(--cor-texto);
+  font-weight: 500;
+}
+
+.content-wrapper {
+  padding: 0 30px 30px 30px;
+}
+
+/* ================== ESTILOS DOS CARDS (Visão Geral) ================== */
+.welcome-banner {
+  background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop') center/cover;
+  border-radius: 8px;
+  padding: 15px 25px; /* Reduzido para poupar espaço */
+  color: white;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.kpi-card {
+  background-color: var(--cor-branco);
+  border-radius: 6px;
+  padding: 12px 15px; /* Reduzido para poupar espaço */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  height: 100%;
+  border-left: 4px solid var(--cor-menu);
+}
+
+/* Removemos o uppercase forçado para respeitar o PrimerUpper (Title Case) digitado */
+
+.kpi-title {
+  font-size: 11px;
+  color: #7f8c8d;
+  margin-bottom: 6px;
+  font-weight: 700;
+  /*text-transform: uppercase;*/
+  letter-spacing: 0.5px;
+}
+
+.kpi-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--cor-texto);
+  margin-bottom: 10px;
+}
+
+/* Estrutura interna para a barra de progresso do card */
+.progress-xs {
+  height: 6px;
+  border-radius: 3px;
+  background-color: #e9ecef;
+  margin-bottom: 5px;
+}
+
+.progress-bar-custom {
+  background-color: var(--cor-menu);
+  border-radius: 3px;
+}
+
+.kpi-subtitle-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 700;
+  color: #7f8c8d;
+  margin-bottom: 8px;
+}
+
+/* ================== PAINEL DE FILTROS (OFFCANVAS) ================== */
+.offcanvas-backdrop {
+  background-color: rgba(0, 0, 0, 0.4) !important; /* Escurece o fundo ao abrir filtros */
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #c1c1c1; 
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8; 
+}
+
+.hover-bg-light:hover {
+  background-color: #f8f9fa;
+}
+/* ================== AJUSTE DO MENU LATERAL ================== */
+.menu-item {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.menu-item:hover {
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.menu-item.active {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  border-left: 4px solid #ffffff;
+}
