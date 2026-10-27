@@ -82,20 +82,199 @@ exports.getDadosBigQuery = async (req, res) => {
             ARRAY(SELECT DISTINCT rota_cidade FROM ${VIEW_HISTORICO} WHERE rota_cidade IS NOT NULL) AS rotasCid,
             ARRAY(SELECT DISTINCT id_rota FROM ${VIEW_HISTORICO} WHERE id_rota IS NOT NULL) AS idsRota
         `;
-        const queryKPIs = `${baseCTEs} SELECT SUM(vlr_frete_bruto_spend) as freteBruto, SUM(CASE WHEN status_auditoria != 'Pendente' THEN vlr_frete_bruto_spend ELSE 0 END) as freteAuditadoVal, SUM(qtd_ctes) as volCtes, SUM(CASE WHEN status_auditoria != 'Pendente' THEN qtd_ctes ELSE 0 END) as volAuditadoVal, SUM(diff_abs_calc) as divTotal, SUM(diff_neg_calc) as divNeg, SUM(diff_pos_calc) as divPos, SUM(CASE WHEN diagnostico_cte = 'Sem Divergência' THEN qtd_ctes ELSE 0 END) as volSemDiv, SUM(CASE WHEN diagnostico_cte = 'Margem Aceitável' THEN qtd_ctes ELSE 0 END) as volMargem, SUM(CASE WHEN diagnostico_cte != 'Sem Divergência' AND diagnostico_cte != 'Margem Aceitável' THEN qtd_ctes ELSE 0 END) as volDivergente FROM BaseMes`;
-        const queryEvolucao = `${baseCTEs} SELECT c_mes as mes, SUM(CASE WHEN status_auditoria != 'Pendente' THEN vlr_frete_bruto_spend ELSE 0 END) as auditadoR, SUM(vlr_frete_bruto_spend) as faturadoR, SUM(CASE WHEN status_auditoria != 'Pendente' THEN qtd_ctes ELSE 0 END) as auditadoV, SUM(qtd_ctes) as faturadoV FROM BaseGlobal WHERE c_mes IS NOT NULL GROUP BY mes ORDER BY mes ASC LIMIT 12`;
+        const queryKPIs = `
+            ${baseCTEs} 
+                SELECT 
+                    SUM(vlr_frete_bruto_spend) as freteBruto, 
+                    SUM(CASE WHEN status_auditoria != 'Pendente' THEN vlr_frete_bruto_spend ELSE 0 END) as freteAuditadoVal, 
+                    SUM(qtd_ctes) as volCtes, 
+                    SUM(CASE WHEN status_auditoria != 'Pendente' THEN qtd_ctes ELSE 0 END) as volAuditadoVal, 
+                    SUM(diff_abs_calc) as divTotal,
+                    SUM(diff_neg_calc) as divNeg, 
+                    SUM(diff_pos_calc) as divPos, 
+                    SUM(CASE WHEN diagnostico_cte = 'Sem Divergência' THEN qtd_ctes ELSE 0 END) as volSemDiv, 
+                    SUM(CASE WHEN diagnostico_cte = 'Margem Aceitável' THEN qtd_ctes ELSE 0 END) as volMargem, 
+                    SUM(CASE WHEN diagnostico_cte != 'Sem Divergência' AND diagnostico_cte != 'Margem Aceitável' THEN qtd_ctes ELSE 0 END) as volDivergente 
+                FROM BaseMes`
+            ;
+        const queryEvolucao = `
+            ${baseCTEs} 
+                SELECT 
+                    c_mes as mes, 
+                    SUM(CASE WHEN status_auditoria != 'Pendente' THEN vlr_frete_bruto_spend ELSE 0 END) as auditadoR, 
+                    SUM(vlr_frete_bruto_spend) as faturadoR, 
+                    SUM(CASE WHEN status_auditoria != 'Pendente' THEN qtd_ctes ELSE 0 END) as auditadoV, 
+                    SUM(qtd_ctes) as faturadoV 
+                FROM BaseGlobal 
+                WHERE c_mes IS NOT NULL 
+                GROUP BY mes 
+                ORDER BY mes ASC 
+                LIMIT 12`
+            ;
         
-        const queryTaxasMensal = `${baseCTEs} SELECT c_mes as mes, SUM(ABS(t_peso)) as frete_peso, SUM(ABS(t_pedagio)) as pedagio, SUM(ABS(t_sec)) as seccat, SUM(ABS(t_gris)) as gris, SUM(ABS(t_adv)) as advlr, SUM(ABS(t_tde)) as tde FROM BaseGlobal WHERE c_mes IS NOT NULL GROUP BY mes ORDER BY mes ASC LIMIT 12`;
+        const queryTaxasMensal = `
+            ${baseCTEs} 
+                SELECT 
+                    c_mes as mes, 
+                    SUM(ABS(t_peso)) as frete_peso, 
+                    SUM(ABS(t_pedagio)) as pedagio, 
+                    SUM(ABS(t_sec)) as seccat, 
+                    SUM(ABS(t_gris)) as gris, 
+                    SUM(ABS(t_adv)) as advlr, 
+                    SUM(ABS(t_tde)) as tde 
+                FROM BaseGlobal 
+                WHERE c_mes IS NOT NULL 
+                GROUP BY mes 
+                ORDER BY mes ASC 
+                LIMIT 12`
+            ;
         
-        const queryTranspStack = `${baseCTEs} SELECT grp_transportador as transportador, SUM(CASE WHEN status_auditoria != 'Pendente' THEN vlr_frete_bruto_spend ELSE 0 END) as auditado, SUM(vlr_frete_bruto_spend) as faturado FROM BaseMes WHERE grp_transportador IS NOT NULL GROUP BY grp_transportador ORDER BY faturado DESC LIMIT 10`;
-        const queryRotaStack = `${baseCTEs} SELECT c_rota_uf as rota, SUM(CASE WHEN status_auditoria != 'Pendente' THEN vlr_frete_bruto_spend ELSE 0 END) as auditado, SUM(vlr_frete_bruto_spend) as faturado FROM BaseMes WHERE c_rota_uf IS NOT NULL GROUP BY c_rota_uf ORDER BY faturado DESC LIMIT 10`;
-        const queryMapaUF = `${baseCTEs} SELECT CONCAT('BR-', uf_origem) as uf, IFNULL(SUM(CASE WHEN status_auditoria != 'Pendente' THEN vlr_frete_bruto_spend ELSE 0 END) / NULLIF(SUM(vlr_frete_bruto_spend), 0) * 100, 0) as pct_auditado FROM BaseMes WHERE uf_origem IS NOT NULL GROUP BY uf`;
+        const queryTranspStack = `
+            ${baseCTEs} 
+                SELECT 
+                    grp_transportador as transportador, 
+                    SUM(CASE WHEN status_auditoria != 'Pendente' THEN vlr_frete_bruto_spend ELSE 0 END) as auditado, 
+                    SUM(vlr_frete_bruto_spend) as faturado 
+                FROM BaseMes 
+                WHERE grp_transportador IS NOT NULL 
+                GROUP BY grp_transportador 
+                ORDER BY faturado DESC 
+                LIMIT 10`
+            ;
 
-        const queryCardsTaxas = `${baseCTEs} SELECT SUM(ABS(t_peso)) as absPeso, SUM(${calcNeg('t_peso')}) as negPeso, SUM(${calcPos('t_peso')}) as posPeso, SUM(ABS(t_pedagio)) as absPedagio, SUM(${calcNeg('t_pedagio')}) as negPedagio, SUM(${calcPos('t_pedagio')}) as posPedagio, SUM(ABS(t_gris)) as absGris, SUM(${calcNeg('t_gris')}) as negGris, SUM(${calcPos('t_gris')}) as posGris, SUM(ABS(t_adv)) as absAdvlr, SUM(${calcNeg('t_adv')}) as negAdvlr, SUM(${calcPos('t_adv')}) as posAdvlr, SUM(ABS(t_sec)) as absSeccat, SUM(${calcNeg('t_sec')}) as negSeccat, SUM(${calcPos('t_sec')}) as posSeccat, SUM(ABS(t_tde)) as absTde, SUM(${calcNeg('t_tde')}) as negTde, SUM(${calcPos('t_tde')}) as posTde FROM BaseMes`;
-        const queryMensalDiv = `${baseCTEs} SELECT c_mes as mes, SUM(CASE WHEN diagnostico_cte != 'Sem Divergência' AND diagnostico_cte != 'Margem Aceitável' THEN qtd_ctes ELSE 0 END) as qtd_divergente, SUM(diff_neg_calc) as valor_negativo, SUM(diff_pos_calc) as valor_positivo FROM BaseGlobal WHERE c_mes IS NOT NULL GROUP BY mes ORDER BY mes ASC LIMIT 12`;
-        const queryRotasCidDiff = `${baseCTEs} SELECT c_rota_cid as rota, SUM(diff_neg_calc) as valor_neg, SUM(diff_pos_calc) as valor_pos FROM BaseMes WHERE c_rota_cid IS NOT NULL GROUP BY c_rota_cid`;
-        const queryMatrizFarol = `${baseCTEs} SELECT 'Frete Peso' as taxa, SUM(CASE WHEN ABS(t_peso) <= 0.01 THEN qtd_ctes ELSE 0 END) as sem_div, SUM(CASE WHEN ABS(t_peso) > 0.01 AND ABS(t_peso) <= 0.50 THEN qtd_ctes ELSE 0 END) as aceitavel, SUM(CASE WHEN ABS(t_peso) > 0.50 THEN qtd_ctes ELSE 0 END) as divergente FROM BaseMes UNION ALL SELECT 'Pedágio' as taxa, SUM(CASE WHEN ABS(t_pedagio) <= 0.01 THEN qtd_ctes ELSE 0 END), SUM(CASE WHEN ABS(t_pedagio) > 0.01 AND ABS(t_pedagio) <= 0.50 THEN qtd_ctes ELSE 0 END), SUM(CASE WHEN ABS(t_pedagio) > 0.50 THEN qtd_ctes ELSE 0 END) FROM BaseMes UNION ALL SELECT 'GRIS' as taxa, SUM(CASE WHEN ABS(t_gris) <= 0.01 THEN qtd_ctes ELSE 0 END), SUM(CASE WHEN ABS(t_gris) > 0.01 AND ABS(t_gris) <= 0.50 THEN qtd_ctes ELSE 0 END), SUM(CASE WHEN ABS(t_gris) > 0.50 THEN qtd_ctes ELSE 0 END) FROM BaseMes UNION ALL SELECT 'Ad Valorem' as taxa, SUM(CASE WHEN ABS(t_adv) <= 0.01 THEN qtd_ctes ELSE 0 END), SUM(CASE WHEN ABS(t_adv) > 0.01 AND ABS(t_adv) <= 0.50 THEN qtd_ctes ELSE 0 END), SUM(CASE WHEN ABS(t_adv) > 0.50 THEN qtd_ctes ELSE 0 END) FROM BaseMes UNION ALL SELECT 'SEC/CAT' as taxa, SUM(CASE WHEN ABS(t_sec) <= 0.01 THEN qtd_ctes ELSE 0 END), SUM(CASE WHEN ABS(t_sec) > 0.01 AND ABS(t_sec) <= 0.50 THEN qtd_ctes ELSE 0 END), SUM(CASE WHEN ABS(t_sec) > 0.50 THEN qtd_ctes ELSE 0 END) FROM BaseMes UNION ALL SELECT 'TDE' as taxa, SUM(CASE WHEN ABS(t_tde) <= 0.01 THEN qtd_ctes ELSE 0 END), SUM(CASE WHEN ABS(t_tde) > 0.01 AND ABS(t_tde) <= 0.50 THEN qtd_ctes ELSE 0 END), SUM(CASE WHEN ABS(t_tde) > 0.50 THEN qtd_ctes ELSE 0 END) FROM BaseMes`;
-        const queryTabelaAuxiliar = `${baseCTEs} SELECT grp_transportador as transportador, c_rota_cid as rota, SUM(qtd_ctes) as qtd_total, SUM(CASE WHEN diagnostico_cte != 'Sem Divergência' AND diagnostico_cte != 'Margem Aceitável' THEN qtd_ctes ELSE 0 END) as qtd_div, SUM(vlr_frete_bruto_spend) as faturamento, SUM(diff_neg_calc) as div_neg, SUM(diff_pos_calc) as div_pos, SUM(diff_abs_calc) as div_abs FROM BaseMes GROUP BY 1, 2 ORDER BY div_abs DESC LIMIT 50`;
+        const queryRotaStack = `
+            ${baseCTEs} 
+                SELECT 
+                    c_rota_uf as rota, 
+                    SUM(CASE WHEN status_auditoria != 'Pendente' THEN vlr_frete_bruto_spend ELSE 0 END) as auditado, 
+                    SUM(vlr_frete_bruto_spend) as faturado 
+                FROM BaseMes 
+                WHERE c_rota_uf IS NOT NULL
+                GROUP BY c_rota_uf 
+                ORDER BY faturado DESC 
+                LIMIT 10`
+            ;
+
+        const queryMapaUF = `
+            ${baseCTEs} 
+                SELECT 
+                    CONCAT('BR-', uf_origem) as uf, 
+                    IFNULL(SUM(CASE WHEN status_auditoria != 'Pendente' THEN vlr_frete_bruto_spend ELSE 0 END) / NULLIF(SUM(vlr_frete_bruto_spend), 0) * 100, 0) as pct_auditado 
+                FROM BaseMes 
+                WHERE uf_origem IS NOT NULL 
+                GROUP BY uf`
+            ;
+
+        const queryCardsTaxas = `
+            ${baseCTEs} 
+                SELECT 
+                    SUM(ABS(t_peso)) as absPeso, 
+                    SUM(${calcNeg('t_peso')}) as negPeso, 
+                    SUM(${calcPos('t_peso')}) as posPeso, 
+                    SUM(ABS(t_pedagio)) as absPedagio, 
+                    SUM(${calcNeg('t_pedagio')}) as negPedagio, 
+                    SUM(${calcPos('t_pedagio')}) as posPedagio, 
+                    SUM(ABS(t_gris)) as absGris, 
+                    SUM(${calcNeg('t_gris')}) as negGris, 
+                    SUM(${calcPos('t_gris')}) as posGris, 
+                    SUM(ABS(t_adv)) as absAdvlr, 
+                    SUM(${calcNeg('t_adv')}) as negAdvlr, 
+                    SUM(${calcPos('t_adv')}) as posAdvlr, 
+                    SUM(ABS(t_sec)) as absSeccat, 
+                    SUM(${calcNeg('t_sec')}) as negSeccat, 
+                    SUM(${calcPos('t_sec')}) as posSeccat, 
+                    SUM(ABS(t_tde)) as absTde, 
+                    SUM(${calcNeg('t_tde')}) as negTde, 
+                    SUM(${calcPos('t_tde')}) as posTde 
+                FROM BaseMes`
+            ;
+
+        const queryMensalDiv = `
+            ${baseCTEs} 
+                SELECT 
+                    c_mes as mes, 
+                    SUM(CASE WHEN diagnostico_cte != 'Sem Divergência' AND diagnostico_cte != 'Margem Aceitável' THEN qtd_ctes ELSE 0 END) as qtd_divergente, 
+                    SUM(diff_neg_calc) as valor_negativo, 
+                    SUM(diff_pos_calc) as valor_positivo 
+                FROM BaseGlobal 
+                WHERE c_mes IS NOT NULL 
+                GROUP BY mes 
+                ORDER BY mes ASC 
+                LIMIT 12`
+            ;
+
+        const queryRotasCidDiff = `
+            ${baseCTEs} 
+                SELECT 
+                    c_rota_cid as rota, 
+                    SUM(diff_neg_calc) as valor_neg, 
+                    SUM(diff_pos_calc) as valor_pos 
+                FROM BaseMes 
+                WHERE c_rota_cid IS NOT NULL 
+                GROUP BY c_rota_cid`
+            ;
+
+        const queryMatrizFarol = `
+            ${baseCTEs} 
+                SELECT 
+                    'Frete Peso' as taxa, 
+                    SUM(CASE WHEN ABS(t_peso) <= 0.01 THEN qtd_ctes ELSE 0 END) as sem_div, 
+                    SUM(CASE WHEN ABS(t_peso) > 0.01 AND ABS(t_peso) <= 0.50 THEN qtd_ctes ELSE 0 END) as aceitavel, 
+                    SUM(CASE WHEN ABS(t_peso) > 0.50 THEN qtd_ctes ELSE 0 END) as divergente 
+                FROM BaseMes 
+                    UNION ALL 
+                SELECT 
+                    'Pedágio' as taxa, 
+                    SUM(CASE WHEN ABS(t_pedagio) <= 0.01 THEN qtd_ctes ELSE 0 END), 
+                    SUM(CASE WHEN ABS(t_pedagio) > 0.01 AND ABS(t_pedagio) <= 0.50 THEN qtd_ctes ELSE 0 END), 
+                    SUM(CASE WHEN ABS(t_pedagio) > 0.50 THEN qtd_ctes ELSE 0 END) 
+                FROM BaseMes 
+                    UNION ALL 
+                SELECT 
+                    'GRIS' as taxa, 
+                    SUM(CASE WHEN ABS(t_gris) <= 0.01 THEN qtd_ctes ELSE 0 END), 
+                    SUM(CASE WHEN ABS(t_gris) > 0.01 AND ABS(t_gris) <= 0.50 THEN qtd_ctes ELSE 0 END), 
+                    SUM(CASE WHEN ABS(t_gris) > 0.50 THEN qtd_ctes ELSE 0 END) 
+                FROM BaseMes 
+                    UNION ALL 
+                SELECT 
+                    'Ad Valorem' as taxa, 
+                    SUM(CASE WHEN ABS(t_adv) <= 0.01 THEN qtd_ctes ELSE 0 END), 
+                    SUM(CASE WHEN ABS(t_adv) > 0.01 AND ABS(t_adv) <= 0.50 THEN qtd_ctes ELSE 0 END), 
+                    SUM(CASE WHEN ABS(t_adv) > 0.50 THEN qtd_ctes ELSE 0 END) 
+                FROM BaseMes 
+                    UNION ALL 
+                SELECT 
+                    'SEC/CAT' as taxa, 
+                    SUM(CASE WHEN ABS(t_sec) <= 0.01 THEN qtd_ctes ELSE 0 END), 
+                    SUM(CASE WHEN ABS(t_sec) > 0.01 AND ABS(t_sec) <= 0.50 THEN qtd_ctes ELSE 0 END), 
+                    SUM(CASE WHEN ABS(t_sec) > 0.50 THEN qtd_ctes ELSE 0 END) 
+                FROM BaseMes 
+                    UNION ALL 
+                SELECT 
+                    'TDE' as taxa, 
+                    SUM(CASE WHEN ABS(t_tde) <= 0.01 THEN qtd_ctes ELSE 0 END), 
+                    SUM(CASE WHEN ABS(t_tde) > 0.01 AND ABS(t_tde) <= 0.50 THEN qtd_ctes ELSE 0 END), 
+                    SUM(CASE WHEN ABS(t_tde) > 0.50 THEN qtd_ctes ELSE 0 END) 
+                    FROM BaseMes`
+            ;
+
+        const queryTabelaAuxiliar = `
+            ${baseCTEs} 
+                SELECT 
+                    grp_transportador as transportador, 
+                    c_rota_cid as rota, 
+                    SUM(qtd_ctes) as qtd_total, 
+                    SUM(CASE WHEN diagnostico_cte != 'Sem Divergência' AND diagnostico_cte != 'Margem Aceitável' THEN qtd_ctes ELSE 0 END) as qtd_div, 
+                    SUM(vlr_frete_bruto_spend) as faturamento, 
+                    SUM(diff_neg_calc) as div_neg, 
+                    SUM(diff_pos_calc) as div_pos, 
+                    SUM(diff_abs_calc) as div_abs 
+                FROM BaseMes 
+                GROUP BY 1, 2 
+                ORDER BY div_abs DESC 
+                LIMIT 50`
+            ;
 
         // =========================================================
         // FILTROS EXCLUSIVOS PARA A VIEW DA FILA DE AUDITORIA

@@ -652,7 +652,8 @@ export default function App() {
     visaoGeral: { ...filtrosPadrao },
     painelAuditoria: { ...filtrosPadrao },
     auditoria: { ...filtrosPadrao },
-    relatorio: { ...filtrosPadrao }
+    relatorio: { ...filtrosPadrao },
+    analiseMassa: { ...filtrosPadrao } // Adicionado para exibir Fila por Taxas
   });
 
   // 2. Estado de Dados Cacheado Independente
@@ -660,7 +661,8 @@ export default function App() {
     visaoGeral: null,
     painelAuditoria: null,
     auditoria: null,
-    relatorio: null
+    relatorio: null,
+    analiseMassa: null // Adicionado para exibir Fila por Taxas
   });
 
   const filtrosAtuais = filtros[telaAtiva] || filtrosPadrao;
@@ -1174,12 +1176,12 @@ function TelaVisaoGeral({ nomeUsuario, dados }) {
               </div>
               <div className="tabular-nums" style={{ fontSize: '28px', color: 'var(--text-main)', marginBottom: '12px' }}>R$ {formatarNumero(Math.round(kpis.divTotal))}</div>
             </div>
-            <div className="d-flex justify-content-between mt-auto tabular-nums" style={{ fontSize: '12px' }}>
-              <span className="fw-bold d-flex align-items-center px-2 py-1" style={{ color: TEMA.error, backgroundColor: 'var(--status-error-bg)', borderRadius: 'var(--radius-sm)' }}>
-                <FaArrowDown className="me-1" size={10}/>R$ {formatarNumero(Math.round(kpis.divNeg))}
+            <div className="d-flex justify-content-between mt-auto tabular-nums" style={{ fontSize: '11px' }}>
+              <span className="fw-bold d-flex align-items-center px-2 py-1" style={{ color: TEMA.chart1, backgroundColor: 'rgba(42, 111, 154, 0.15)', borderRadius: 'var(--radius-sm)' }}>
+                <FaArrowDown className="me-1" size={10}/> A Receber: R$ {formatarNumero(Math.round(kpis.divNeg))}
               </span>
-              <span className="fw-bold d-flex align-items-center px-2 py-1" style={{ color: TEMA.success, backgroundColor: 'var(--status-success-bg)', borderRadius: 'var(--radius-sm)' }}>
-                <FaArrowUp className="me-1" size={10}/>R$ {formatarNumero(Math.round(kpis.divPos))}
+              <span className="fw-bold d-flex align-items-center px-2 py-1" style={{ color: TEMA.error, backgroundColor: 'var(--status-error-bg)', borderRadius: 'var(--radius-sm)' }}>
+                <FaArrowUp className="me-1" size={10}/> A Pagar: R$ {formatarNumero(Math.round(kpis.divPos))}
               </span>
             </div>
           </div>
@@ -1330,7 +1332,7 @@ function TelaVisaoGeral({ nomeUsuario, dados }) {
                   <YAxis type="category" dataKey="rota" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: TEMA.textMain, fontWeight: '700', fontFamily: 'Urbanist'}} width={90} />
                   <Tooltip cursor={{fill: 'rgba(0,0,0,0.02)'}} contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.4)', backdropFilter: 'blur(10px)', backgroundColor: 'rgba(255,255,255,0.9)', fontSize: '11px', fontWeight: '700', fontFamily: 'Urbanist' }} formatter={tooltipFormatter} />
                   <Legend wrapperStyle={{ fontSize: '10px', fontWeight: '700', color: TEMA.textAux, fontFamily: 'Urbanist' }} iconType="circle" />
-                  <Bar dataKey="faturado" name="Faturado" fill={TEMA.chart3} radius={[0, 4, 4, 0]} barSize={10}>
+                  <Bar dataKey="faturado" name="Faturado" fill={TEMA.chart2} radius={[0, 4, 4, 0]} barSize={10}>
                     <LabelList dataKey="pctAuditado" position="right" formatter={(v) => `${v}%`} style={{ fontSize: '10px', fontWeight: '700', fill: TEMA.textAux, fontFamily: 'Urbanist' }} />
                   </Bar>
                   <Bar dataKey="auditado" name="Auditado" fill={TEMA.chart1} radius={[0, 4, 4, 0]} barSize={10} />
@@ -1400,11 +1402,11 @@ function TelaPainelAuditoria({ nomeUsuario, dados }) {
           </div>
 
           <div className="d-flex align-items-center">
-            <span style={{ fontSize: '10px', width: '70px', color: 'var(--text-aux)', fontWeight: '700' }}>A Cobrar</span>
+            <span style={{ fontSize: '10px', width: '70px', color: 'var(--text-aux)', fontWeight: '700' }}>Cobrado Menor</span>
             <div style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.05)', height: '10px', borderRadius: 'var(--radius-pill)', marginRight: '8px' }}>
-              <div style={{ width: `${wPos}%`, backgroundColor: TEMA.success, height: '100%', borderRadius: 'var(--radius-pill)' }}></div>
+              <div style={{ width: `${wPos}%`, backgroundColor: TEMA.chart1, height: '100%', borderRadius: 'var(--radius-pill)' }}></div>
             </div>
-            <span className="tabular-nums" style={{ fontSize: '11px', fontWeight: '800', color: TEMA.success }}>R$ {formatarNumero(Math.round(data.valor_positivo))}</span>
+            <span className="tabular-nums" style={{ fontSize: '11px', fontWeight: '800', color: TEMA.chart1 }}>R$ {formatarNumero(Math.round(data.valor_positivo))}</span>
           </div>
         </div>
       );
@@ -1444,8 +1446,12 @@ function TelaPainelAuditoria({ nomeUsuario, dados }) {
               <div className="fw-bold tabular-nums" style={{ fontSize: '20px', color: 'var(--text-main)', marginBottom: '4px' }}>R$ {formatarNumero(Math.round(c.abs))}</div>
             </div>
             <div className="d-flex justify-content-between mt-auto tabular-nums" style={{ fontSize: '10px' }}>
-              <span className="fw-bold d-flex align-items-center" style={{ color: TEMA.error }} title="Cobrado a Maior"><FaArrowDown className="me-1"/>{formatarNumero(Math.round(c.neg))}</span>
-              <span className="fw-bold d-flex align-items-center" style={{ color: TEMA.success }} title="A Cobrar"><FaArrowUp className="me-1"/>{formatarNumero(Math.round(c.pos))}</span>
+              <span className="fw-bold d-flex align-items-center" style={{ color: TEMA.chart1 }}>
+                <FaArrowDown className="me-1"/> A Receber: {formatarNumero(Math.round(c.neg))}
+              </span>
+              <span className="fw-bold d-flex align-items-center" style={{ color: TEMA.error }}>
+                <FaArrowUp className="me-1"/> A Pagar: {formatarNumero(Math.round(c.pos))}
+              </span>
             </div>
           </div>
         ))}
@@ -1548,7 +1554,7 @@ function TelaPainelAuditoria({ nomeUsuario, dados }) {
               </div>
 
               <div className="col-6 ps-2 d-flex flex-column">
-                <div className="text-center fw-bold mb-2" style={{ fontSize: '11px', color: TEMA.success, textTransform: 'uppercase' }}><FaArrowUp className="me-1"/> A Cobrar (+)</div>
+                <div className="text-center fw-bold mb-2" style={{ fontSize: '11px', color: TEMA.chart1, textTransform: 'uppercase' }}><FaArrowUp className="me-1"/> Cobrado a Menor (+)</div>
                 <div style={{ flex: 1, minHeight: 0 }}>
                   <ResponsiveContainer>
                     <BarChart data={topRotasPos} layout="vertical" margin={{top: 0, right: 40, left: 0, bottom: 0}}>
@@ -1563,7 +1569,7 @@ function TelaPainelAuditoria({ nomeUsuario, dados }) {
                         }}
                       />
                       <Tooltip formatter={(val) => `+R$ ${formatarMoeda(val)}`} contentStyle={{ borderRadius: '8px', border: 'none', backgroundColor: 'rgba(255,255,255,0.9)', fontSize: '11px', fontWeight: '700', fontFamily: 'Urbanist' }} />
-                      <Bar dataKey="valor" fill={TEMA.success} radius={[0, 4, 4, 0]} barSize={8}>
+                      <Bar dataKey="valor" fill={TEMA.chart1} radius={[0, 4, 4, 0]} barSize={8}>
                         <LabelList dataKey="valor" position="right" formatter={(v) => `+R$ ${formatarNumero(Math.round(v))}`} style={{ fontSize: '9px', fill: TEMA.textAux, fontWeight: '700', fontFamily: 'Urbanist' }} />
                       </Bar>
                     </BarChart>
@@ -1578,29 +1584,29 @@ function TelaPainelAuditoria({ nomeUsuario, dados }) {
             <div className="p-3 pb-2 border-bottom" style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
               <h6 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>Resumo por Transportador e Rota</h6>
             </div>
-            <div className="custom-scrollbar" style={{ overflowY: 'auto', flex: 1, maxHeight: '25vh' }}>
+            <div className="custom-scrollbar" style={{ overflowY: 'auto', flex: 1, maxHeight: '26vh' }}>
               <table className="table table-sm table-borderless table-hover mb-0 text-center align-middle" style={{ fontSize: '11px', backgroundColor: 'transparent' }}>
                 <thead style={{ position: 'sticky', top: 0, backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(5px)', zIndex: 1, borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
                   <tr>
                     <th className="text-start text-muted fw-bold" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Transportador</th>
                     <th className="text-start text-muted fw-bold" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Rota</th>
                     <th className="text-muted fw-bold" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Volume</th>
-                    <th className="fw-bold" style={{color: TEMA.error, fontSize: '10px', textTransform: 'uppercase'}}>Qtd Div</th>
+                    <th className="fw-bold" style={{color: TEMA.error, fontSize: '10px', textTransform: 'uppercase'}}>Qtd Divergente</th>
                     <th className="text-muted fw-bold" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Bruto</th>
                     <th className="fw-bold" style={{color: TEMA.error, fontSize: '10px', textTransform: 'uppercase'}}>A Maior</th>
-                    <th className="fw-bold" style={{color: TEMA.success, fontSize: '10px', textTransform: 'uppercase'}}>A Cobrar</th>
+                    <th className="fw-bold" style={{color: TEMA.chart1, fontSize: '10px', textTransform: 'uppercase'}}>A Menor</th>
                   </tr>
                 </thead>
                 <tbody className="tabular-nums">
                   {tabelaAuxiliar.map((r, i) => (
                     <tr key={i} style={{ borderBottom: '1px solid rgba(0,0,0,0.02)' }}>
                       <td className="text-start fw-bold" style={{ color: TEMA.chart1 }}>{(r.transportador || '').substring(0, 15)}</td>
-                      <td className="text-start text-muted fw-bold">{(r.rota || '').substring(0, 15)}</td>
+                      <td className="text-start text-muted fw-bold">{(r.rota || '').substring(0, 40)}</td>
                       <td style={{ color: 'var(--text-main)' }}>{formatarNumero(Math.round(r.qtd_total))}</td>
                       <td className="fw-bold" style={{color: TEMA.error}}>{formatarNumero(Math.round(r.qtd_div))}</td>
                       <td style={{ color: 'var(--text-main)' }}>R$ {formatarNumero(Math.round(r.faturamento))}</td>
                       <td className="fw-bold" style={{ color: TEMA.error }}>R$ {formatarNumero(Math.round(r.div_neg))}</td>
-                      <td className="fw-bold" style={{ color: TEMA.success }}>R$ {formatarNumero(Math.round(r.div_pos))}</td>
+                      <td className="fw-bold" style={{ color: TEMA.chart1 }}>R$ {formatarNumero(Math.round(r.div_pos))}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1631,6 +1637,12 @@ function TelaFilaAuditoria({ nomeUsuario, dados, tratativasGlobais, onSalvarTrat
   const [filtroStatus, setFiltroStatus] = useState('Todos');
   const [itensPorPagina, setItensPorPagina] = useState(50);
   const [itensSelecionados, setItensSelecionados] = useState([]);
+  const [paginaAtual, setPaginaAtual] = useState(1);
+
+  // Retorna para a página 1 sempre que os filtros forem alterados
+  useEffect(() => {
+    setPaginaAtual(1);
+  }, [filtroStatus, termoBusca, itensPorPagina]);
 
   const [decisaoFinal, setDecisaoFinal] = useState('');
   const [motivoReprovacao, setMotivoReprovacao] = useState('');
@@ -1787,7 +1799,15 @@ function TelaFilaAuditoria({ nomeUsuario, dados, tratativasGlobais, onSalvarTrat
     return true;
   };
 
-  const dadosFiltrados = filaReal.filter(c => filtroStatus === 'Todos' || c.status === filtroStatus).filter(c => c.chave.includes(termoBusca) || c.transportador.toLowerCase().includes(termoBusca.toLowerCase())).slice(0, itensPorPagina);
+  // 1. Aplica os filtros na base completa
+  const dadosFiltradosBase = filaReal
+    .filter(c => filtroStatus === 'Todos' || c.status === filtroStatus)
+    .filter(c => c.chave.includes(termoBusca) || c.transportador.toLowerCase().includes(termoBusca.toLowerCase()));
+
+  // 2. Calcula as métricas de paginação
+  const totalPaginas = Math.ceil(dadosFiltradosBase.length / itensPorPagina) || 1;
+  const dadosPaginados = dadosFiltradosBase.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina);  
+
 
   const getBadgeStatus = (status) => {
     if (status === 'Sem Divergência') return <span style={{ backgroundColor: 'var(--status-success-bg)', color: 'var(--status-success-txt)', padding: '4px 8px', borderRadius: 'var(--radius-pill)', fontSize: '10px', fontWeight: '800' }}>Conforme</span>;
@@ -1848,7 +1868,7 @@ function TelaFilaAuditoria({ nomeUsuario, dados, tratativasGlobais, onSalvarTrat
                   <XAxis dataKey="name" tick={{fontSize: 10, fill: TEMA.textMain, fontWeight: '700', fontFamily: 'Urbanist'}} axisLine={false} tickLine={false} />
                   <YAxis hide />
                   <Tooltip cursor={{fill: 'rgba(0,0,0,0.02)'}} formatter={(val) => `R$ ${formatarMoeda(val)}`} contentStyle={{ borderRadius: '8px', border: '1px solid rgba(255,255,255,0.4)', backdropFilter: 'blur(10px)', backgroundColor: 'rgba(255,255,255,0.9)', fontSize: '11px', fontWeight: '700', fontFamily: 'Urbanist' }} />
-                  <Bar dataKey="pos" name="A Menor (+)" fill={TEMA.success} stackId="a" barSize={20} />
+                  <Bar dataKey="pos" name="A Menor (+)" fill={TEMA.chart1} stackId="a" barSize={20} />
                   <Bar dataKey="neg" name="A Maior (-)" fill={TEMA.error} stackId="a" radius={[4, 4, 0, 0]} barSize={20} />
                 </BarChart>
               </ResponsiveContainer>
@@ -1894,6 +1914,7 @@ function TelaFilaAuditoria({ nomeUsuario, dados, tratativasGlobais, onSalvarTrat
             <option value={25}>25 CT-es</option>
             <option value={50}>50 CT-es</option>
             <option value={100}>100 CT-es</option>
+            <option value={500}>500 CT-es</option>
           </select>
         </div>
         <button className="btn btn-sm text-white fw-bold shadow-sm d-flex align-items-center" style={{ fontSize: '12px', backgroundColor: 'var(--dark-highlight)', borderRadius: 'var(--radius-md)', padding: '6px 16px' }} onClick={aprovarLote}>
@@ -1906,7 +1927,7 @@ function TelaFilaAuditoria({ nomeUsuario, dados, tratativasGlobais, onSalvarTrat
           <table className="table table-borderless table-hover table-sm mb-0 text-center align-middle" style={{ fontSize: '11px', backgroundColor: 'transparent' }}>
             <thead style={{ position: 'sticky', top: 0, backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(5px)', zIndex: 1, borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
               <tr className="text-uppercase" style={{ fontSize: '10px', color: 'var(--text-aux)' }}>
-                <th className="ps-3 py-3"><input className="form-check-input" type="checkbox" style={{ borderRadius: '4px' }} onChange={(e) => handleSelectAll(e, dadosFiltrados)} checked={dadosFiltrados.length > 0 && itensSelecionados.length === dadosFiltrados.length}/></th>
+                <th className="ps-3 py-3"><input className="form-check-input" type="checkbox" style={{ borderRadius: '4px' }} onChange={(e) => handleSelectAll(e, dadosPaginados)} checked={dadosPaginados.length > 0 && itensSelecionados.length === dadosPaginados.length}/></th>
                 <th className="text-start py-3">Chave CT-e</th>
                 <th className="py-3">Transportador</th>
                 <th className="py-3">Rota</th>
@@ -1919,7 +1940,7 @@ function TelaFilaAuditoria({ nomeUsuario, dados, tratativasGlobais, onSalvarTrat
               </tr>
             </thead>
             <tbody className="tabular-nums">
-              {dadosFiltrados.map((cte, idx) => (
+              {dadosPaginados.map((cte, idx) => (
                 <tr key={idx} style={{ backgroundColor: itensSelecionados.includes(cte.chave) ? 'var(--status-success-bg)' : 'transparent', borderBottom: '1px solid rgba(0,0,0,0.02)' }}>
                   <td className="ps-3 py-2"><input className="form-check-input" type="checkbox" style={{ borderRadius: '4px' }} checked={itensSelecionados.includes(cte.chave)} onChange={(e) => handleSelectItem(cte.chave, e.target.checked)} /></td>
                   <td className="text-start fw-bold" style={{ color: 'var(--primary)', fontFamily: 'monospace', fontSize: '12px' }}>{cte.chave}</td>
@@ -1933,9 +1954,27 @@ function TelaFilaAuditoria({ nomeUsuario, dados, tratativasGlobais, onSalvarTrat
                   <td><button className="btn btn-sm fw-bold shadow-sm" style={{ backgroundColor: 'var(--card-solid)', color: 'var(--primary)', fontSize: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(0,0,0,0.05)' }} onClick={() => abrirModal(cte)}>Auditar</button></td>
                 </tr>
               ))}
-              {dadosFiltrados.length === 0 && (<tr><td colSpan="10" className="text-center py-5 fw-bold" style={{ color: 'var(--text-aux)' }}>Nenhum documento encontrado.</td></tr>)}
+              {dadosPaginados.length === 0 && (<tr><td colSpan="10" className="text-center py-5 fw-bold" style={{ color: 'var(--text-aux)' }}>Nenhum documento encontrado.</td></tr>)}
             </tbody>
           </table>
+        </div>
+
+        {/* RODAPÉ DE PAGINAÇÃO */}
+        <div className="d-flex justify-content-between align-items-center p-3 border-top" style={{ backgroundColor: 'rgba(255,255,255,0.9)' }}>
+          <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)' }}>
+            A mostrar {dadosFiltradosBase.length > 0 ? (paginaAtual - 1) * itensPorPagina + 1 : 0} a {Math.min(paginaAtual * itensPorPagina, dadosFiltradosBase.length)} de {dadosFiltradosBase.length} CT-es
+          </span>
+          <div className="btn-group shadow-sm">
+            <button className="btn btn-sm btn-light fw-bold" style={{ fontSize: '12px', color: 'var(--text-main)', border: '1px solid rgba(0,0,0,0.1)' }} onClick={() => setPaginaAtual(prev => Math.max(prev - 1, 1))} disabled={paginaAtual === 1}>
+              Anterior
+            </button>
+            <button className="btn btn-sm btn-light fw-bold" style={{ fontSize: '12px', color: 'var(--text-main)', border: '1px solid rgba(0,0,0,0.1)', cursor: 'default' }} disabled>
+              Página {paginaAtual} de {totalPaginas}
+            </button>
+            <button className="btn btn-sm btn-light fw-bold" style={{ fontSize: '12px', color: 'var(--text-main)', border: '1px solid rgba(0,0,0,0.1)' }} onClick={() => setPaginaAtual(prev => Math.min(prev + 1, totalPaginas))} disabled={paginaAtual === totalPaginas}>
+              Próxima
+            </button>
+          </div>
         </div>
       </div>
 
