@@ -1,10 +1,13 @@
 import React, { useState, useEffect, Fragment, useMemo } from 'react';
 import axios from 'axios';
-import { FaClipboardList, FaClock, FaHistory, FaSearch, FaFilter, FaArrowDown, FaArrowUp, FaTimes, FaSignInAlt, FaTruck, FaWeightHanging, FaRoad, FaFileInvoiceDollar, FaFileContract, FaChartLine, FaEye, FaCheck, FaBan, FaExclamationTriangle, FaCheckDouble, FaDownload, FaChartBar, FaLayerGroup } from 'react-icons/fa';
+import { FaClipboardList, FaClock, FaHistory, FaSearch, FaFilter, FaArrowDown, FaArrowUp, FaTimes, FaSignInAlt, FaTruck, FaWeightHanging, FaRoad, FaFileInvoiceDollar, FaFileContract, FaChartLine, FaEye, FaCheck, FaBan, FaExclamationTriangle, FaCheckDouble, FaDownload, FaChartBar, FaLayerGroup, FaHome } from 'react-icons/fa';
 import { MdSpaceDashboard } from 'react-icons/md';
+import TelaGeracaoTemplate from './pages/TelaGeracaoTemplate';
+import TelaInicial from './pages/TelaInicial';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, LabelList, Legend } from 'recharts';
 import { Chart as GeoChart } from "react-google-charts";
 import './App.css';
+
 
 // ================= ESTILOS E CORES PADRONIZADOS =================
 const COR_POS = '#5DADE2';       
@@ -613,7 +616,7 @@ function TelaEmDesenvolvimento({ titulo }) {
 // ============================================================================
 export default function App() {
   const [usuarioLogado, setUsuarioLogado] = useState(null);
-  const [telaAtiva, setTelaAtiva] = useState('visaoGeral');
+  const [telaAtiva, setTelaAtiva] = useState('home');
   const [carregando, setCarregando] = useState(false);
   const [painelFiltrosAberto, setPainelFiltrosAberto] = useState(false);
   const [menuUsuarioAberto, setMenuUsuarioAberto] = useState(false);
@@ -753,15 +756,21 @@ export default function App() {
         backgroundColor: 'var(--dark-highlight)',
         borderRadius: 'var(--radius-xl)',
         width: '260px',
-        minWidth: '260px', /* Garante que o menu nunca é esmagado */
-        height: 'calc(100vh - 40px)', /* Altura total menos o padding superior/inferior */
+        minWidth: '260px',
+        height: 'calc(100vh - 40px)',
         boxShadow: '0 12px 32px rgba(0,0,0,0.15)',
         zIndex: 100,
         overflow: 'hidden',
-        flexShrink: 0 /* Impede o flexbox de encolher a barra */
+        flexShrink: 0
       }}>
         
-        <div className="d-flex flex-column align-items-center py-4 mb-2">
+        {/* LOGO CLICÁVEL DIRECIONANDO PARA HOME */}
+        <div 
+          className="d-flex flex-column align-items-center py-4 mb-2 hover-scale" 
+          style={{ cursor: 'pointer', transition: 'all 0.2s' }}
+          onClick={() => setTelaAtiva('home')}
+          title="Ir para a Página Inicial"
+        >
           <div style={{
             width: '52px', height: '52px', backgroundColor: 'var(--card-solid)', 
             borderRadius: 'var(--radius-lg)', display: 'flex', alignItems: 'center', 
@@ -772,23 +781,43 @@ export default function App() {
           <h6 className="fw-bold text-white mb-0" style={{ fontSize: '15px', letterSpacing: '0.5px' }}>Transportes GB</h6>
         </div>
         
+        {/* NOVA OPÇÃO HOME NO MENU LATERAL */}
+          <button className={`menu-item ${telaAtiva === 'home' ? 'active' : ''}`} onClick={() => setTelaAtiva('home')} style={{ borderRadius: 'var(--radius-md)' }}>
+            <FaHome className="menu-icon"/> Home
+          </button>
+
         <div className="sidebar-menu custom-scrollbar" style={{ overflowY: 'auto', flex: 100, padding: '0 10px' }}>
           <div className="menu-section" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>DASHBOARD</div>
-          <button className={`menu-item ${telaAtiva === 'visaoGeral' ? 'active' : ''}`} onClick={() => setTelaAtiva('visaoGeral')} style={{ borderRadius: 'var(--radius-md)' }}><MdSpaceDashboard className="menu-icon"/> Painel Geral</button>
-          <button className={`menu-item ${telaAtiva === 'painelAuditoria' ? 'active' : ''}`} onClick={() => setTelaAtiva('painelAuditoria')} style={{ borderRadius: 'var(--radius-md)' }}><FaChartLine className="menu-icon"/> Painel Auditoria</button>
+          
+          <button className={`menu-item ${telaAtiva === 'visaoGeral' ? 'active' : ''}`} onClick={() => setTelaAtiva('visaoGeral')} style={{ borderRadius: 'var(--radius-md)' }}>
+            <MdSpaceDashboard className="menu-icon"/> Painel Geral
+          </button>
+          <button className={`menu-item ${telaAtiva === 'painelAuditoria' ? 'active' : ''}`} onClick={() => setTelaAtiva('painelAuditoria')} style={{ borderRadius: 'var(--radius-md)' }}>
+            <FaChartLine className="menu-icon"/> Painel Auditoria
+          </button>
           
           <div className="menu-section mt-4" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>AUDITORIA</div>
-          <button className={`menu-item ${telaAtiva === 'auditoria' ? 'active' : ''}`} onClick={() => setTelaAtiva('auditoria')} style={{ borderRadius: 'var(--radius-md)' }}><FaClipboardList className="menu-icon"/> Fila por CT-e</button>
-          <button className={`menu-item ${telaAtiva === 'analiseMassa' ? 'active' : ''}`} onClick={() => setTelaAtiva('analiseMassa')} style={{ borderRadius: 'var(--radius-md)' }}><FaLayerGroup className="menu-icon"/> Fila por Taxas</button>
+          <button className={`menu-item ${telaAtiva === 'auditoria' ? 'active' : ''}`} onClick={() => setTelaAtiva('auditoria')} style={{ borderRadius: 'var(--radius-md)' }}>
+            <FaClipboardList className="menu-icon"/> Fila por CT-e
+          </button>
+          <button className={`menu-item ${telaAtiva === 'analiseMassa' ? 'active' : ''}`} onClick={() => setTelaAtiva('analiseMassa')} style={{ borderRadius: 'var(--radius-md)' }}>
+            <FaLayerGroup className="menu-icon"/> Fila por Taxas
+          </button>
 
           <div className="menu-section mt-4" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>TABELAS DE FRETE</div>
-          <button className={`menu-item ${telaAtiva === 'geracaoTemplate' ? 'active' : ''}`} onClick={() => setTelaAtiva('geracaoTemplate')} style={{ borderRadius: 'var(--radius-md)' }}><FaFileContract className="menu-icon"/> Geração Template</button>
-          <button className={`menu-item ${telaAtiva === 'repositorioTabelas' ? 'active' : ''}`} onClick={() => setTelaAtiva('repositorioTabelas')} style={{ borderRadius: 'var(--radius-md)' }}><FaSearch className="menu-icon"/> Repositório Tabelas</button>
+          <button className={`menu-item ${telaAtiva === 'geracaoTemplate' ? 'active' : ''}`} onClick={() => setTelaAtiva('geracaoTemplate')} style={{ borderRadius: 'var(--radius-md)' }}>
+            <FaFileContract className="menu-icon"/> Geração Template
+          </button>
+          <button className={`menu-item ${telaAtiva === 'repositorioTabelas' ? 'active' : ''}`} onClick={() => setTelaAtiva('repositorioTabelas')} style={{ borderRadius: 'var(--radius-md)' }}>
+            <FaSearch className="menu-icon"/> Repositório Tabelas
+          </button>
         </div>
 
         <div className="mt-auto px-3 pb-4 pt-2">
           <div className="menu-section mb-2" style={{ paddingLeft: '10px', color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>HISTÓRICO</div>
-          <button className={`menu-item ${telaAtiva === 'relatorio' ? 'active' : ''}`} onClick={() => setTelaAtiva('relatorio')} style={{ borderRadius: 'var(--radius-md)' }}><FaHistory className="menu-icon"/> Relatórios</button>
+          <button className={`menu-item ${telaAtiva === 'relatorio' ? 'active' : ''}`} onClick={() => setTelaAtiva('relatorio')} style={{ borderRadius: 'var(--radius-md)' }}>
+            <FaHistory className="menu-icon"/> Relatórios
+          </button>
         </div>
       </aside>
 
@@ -800,7 +829,7 @@ export default function App() {
           <div className="fw-bold" style={{ fontSize: '17px', color: 'var(--text-main)' }}>{getBreadcrumb()}</div>
           
           <div className="d-flex gap-3 align-items-center">
-            {telaAtiva !== 'relatorio' && (
+            {['visaoGeral', 'painelAuditoria', 'auditoria', 'analiseMassa'].includes(telaAtiva) && (
               <>
                 <button className="btn btn-sm glass-panel fw-bold d-flex align-items-center" style={{ fontSize: '12px', color: 'var(--text-secondary)', padding: '6px 14px', border: '1px solid rgba(255,255,255,0.8)' }} onClick={limparFiltros}>
                   Limpar Filtros
@@ -837,16 +866,19 @@ export default function App() {
 
         {/* CONTAINER DINÂMICO DE ECRÃS */}
         <div className="content-wrapper custom-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '0 10px 10px 10px', borderRadius: 'var(--radius-xl)' }}>
+          {/* NOVA TELA INICIAL (DASHBOARD/HOME COM ASSISTENTE) */}
+          {telaAtiva === 'home' && <TelaInicial setMenuAtivo={setTelaAtiva} />}
+
+          {/* DEMAIS TELAS DO SISTEMA */}
           {telaAtiva === 'visaoGeral' && dadosAtuais && <TelaVisaoGeral nomeUsuario={usuarioLogado.nome} dados={dadosAtuais} />}
           {telaAtiva === 'painelAuditoria' && dadosAtuais && <TelaPainelAuditoria nomeUsuario={usuarioLogado.nome} dados={dadosAtuais} />}
           
-          {/* VERIFIQUE SE ESTA LINHA ABAIXO EXISTE: */}
           {telaAtiva === 'auditoria' && dadosAtuais && <TelaFilaAuditoria nomeUsuario={usuarioLogado.nome} dados={dadosAtuais} tratativasGlobais={tratativasGlobais} onSalvarTratativas={handleSalvarTratativas} onRemoverTratativa={handleRemoverTratativa} />}
           
           {telaAtiva === 'relatorio' && <TelaRelatorio filtrosOpcoes={filtrosOpcoes} />}
           {telaAtiva === 'analiseMassa' && dadosAtuais && <TelaAnaliseMassa dados={dadosAtuais} onSalvarTratativas={handleSalvarTratativas} />}
           
-          {telaAtiva === 'geracaoTemplate' && <TelaEmDesenvolvimento titulo="Geração de Template de Frete" />}
+          {telaAtiva === 'geracaoTemplate' && <TelaGeracaoTemplate />}
           {telaAtiva === 'repositorioTabelas' && <TelaEmDesenvolvimento titulo="Repositório de Tabelas e Contratos" />}
         </div>
 
@@ -1329,7 +1361,7 @@ function TelaVisaoGeral({ nomeUsuario, dados }) {
                 <BarChart data={dadosRotaStackProntos} layout="vertical" margin={{ top: 0, right: 35, left: 10, bottom: 0 }} barGap={-10}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="rgba(0,0,0,0.05)" />
                   <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="rota" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: TEMA.textMain, fontWeight: '700', fontFamily: 'Urbanist'}} width={90} />
+                  <YAxis type="category" dataKey="rota" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: TEMA.textMain, fontWeight: '600', fontFamily: 'Urbanist'}} width={90} />
                   <Tooltip cursor={{fill: 'rgba(0,0,0,0.02)'}} contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.4)', backdropFilter: 'blur(10px)', backgroundColor: 'rgba(255,255,255,0.9)', fontSize: '11px', fontWeight: '700', fontFamily: 'Urbanist' }} formatter={tooltipFormatter} />
                   <Legend wrapperStyle={{ fontSize: '10px', fontWeight: '700', color: TEMA.textAux, fontFamily: 'Urbanist' }} iconType="circle" />
                   <Bar dataKey="faturado" name="Faturado" fill={TEMA.chart2} radius={[0, 4, 4, 0]} barSize={10}>
