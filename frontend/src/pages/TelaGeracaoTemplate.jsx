@@ -10,7 +10,7 @@ import {
   FaFilePdf, FaTimes, FaShareAlt, FaWhatsapp, FaSlack, FaEnvelope, FaCalendarAlt, FaPlus
 } from 'react-icons/fa';
 import { PARAMETROS_LOGISTICOS } from '../data/mockFrete';
-import axios from 'axios';
+import api from '../services/api';
 
 // ============================================================================
 // CONSTANTES E FORMATAÇÃO
@@ -195,7 +195,7 @@ export default function TelaGeracaoTemplate({ usuarioLogado, historicoGeneralida
   }, [regiaoEmEdicao, rotasEmEdicao]);
 
   useEffect(() => {
-    axios.get('http://localhost:3000/api/rotas-ibge').then(res => setDadosIbge(res.data)).catch(err => console.error("Erro BQ:", err)).finally(() => setCarregandoMalha(false));
+    api.get('/api/rotas-ibge').then(res => setDadosIbge(res.data)).catch(err => console.error("Erro BQ:", err)).finally(() => setCarregandoMalha(false));
   }, []);
 
   // CÁLCULO DE KPIs DINÂMICO BASEADO NO HISTÓRICO

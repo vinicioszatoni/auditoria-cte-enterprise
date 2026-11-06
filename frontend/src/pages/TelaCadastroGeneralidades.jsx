@@ -8,7 +8,7 @@ import {
   FaPlus, FaBuilding, FaTimes, FaUpload, FaChartPie, FaSearch,
   FaEdit, FaTrash
 } from 'react-icons/fa';
-import axios from 'axios';
+import api from '../services/api';
 import { PARAMETROS_LOGISTICOS } from '../data/mockFrete';
 
 // ================= FUNÇÕES UTILITÁRIAS =================
@@ -60,7 +60,7 @@ export default function TelaCadastroGeneralidades({ usuarioLogado }) {
 
   // ================= INTEGRAÇÕES (PRESENTE/FUTURO) =================
   useEffect(() => {
-    axios.get('http://localhost:3000/api/rotas-ibge')
+    api.get('/api/rotas-ibge')
       .then(res => setDadosIbge(res.data))
       .catch(err => console.error("Erro IBGE:", err));
 

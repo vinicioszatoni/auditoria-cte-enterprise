@@ -107,10 +107,16 @@ export const PARAMETROS_LOGISTICOS = {
     '30 Kg', 
     '50 Kg', 
     '70 Kg', 
-    '100 Kg', 
+    '100 Kg',
+    '150 Kg',
+    '200 Kg',
+    '300 Kg',
+    '400 Kg',
     '500 Kg', 
+    '1000 Kg', 
     '3000 Kg', 
     '5000 Kg', 
+    '10000 Kg', 
     'Excedente Kg'
   ]
 };

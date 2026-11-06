@@ -5,6 +5,10 @@ node_modules/
 
 # Credenciais e Variáveis de Ambiente
 .env
+.env.local
+.env.development
+.env.production
+.env.*
 *.pem
 *.key
 backend/config/google-credentials.json
