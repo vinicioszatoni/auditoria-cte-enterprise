@@ -1,8 +1,9 @@
 import React, { useState, useEffect, Fragment, useMemo } from 'react';
 import axios from 'axios';
-import { FaClipboardList, FaClock, FaHistory, FaSearch, FaFilter, FaArrowDown, FaArrowUp, FaTimes, FaSignInAlt, FaTruck, FaWeightHanging, FaRoad, FaFileInvoiceDollar, FaFileContract, FaChartLine, FaEye, FaCheck, FaBan, FaExclamationTriangle, FaCheckDouble, FaDownload, FaChartBar, FaLayerGroup, FaHome } from 'react-icons/fa';
+import { FaClipboardList, FaClock, FaHistory, FaSearch, FaFilter, FaArrowDown, FaArrowUp, FaTimes, FaSignInAlt, FaTruck, FaWeightHanging, FaRoad, FaFileInvoiceDollar, FaFileContract, FaChartLine, FaEye, FaCheck, FaBan, FaExclamationTriangle, FaCheckDouble, FaDownload, FaChartBar, FaLayerGroup, FaHome, FaChevronDown, FaChevronRight, FaCog } from 'react-icons/fa';
 import { MdSpaceDashboard } from 'react-icons/md';
 import TelaGeracaoTemplate from './pages/TelaGeracaoTemplate';
+import TelaCadastroGeneralidades from './pages/TelaCadastroGeneralidades';
 import TelaInicial from './pages/TelaInicial';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, LabelList, Legend } from 'recharts';
 import { Chart as GeoChart } from "react-google-charts";
@@ -259,7 +260,22 @@ function TelaAnaliseMassa({ dados, onSalvarTratativas }) {
   const [motivoReprovacao, setMotivoReprovacao] = useState('');
   const [obsLivre, setObsLivre] = useState('');
 
+  // Novos Estados de Paginação e Ordenação
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const [itensPorPagina, setItensPorPagina] = useState(50);
+  const [ordenacao, setOrdenacao] = useState({ coluna: 'impacto', direcao: 'desc' });
+
   const { tabela = [] } = dados || {};
+
+  // Reseta a página ao trocar de taxa, volume de página ou ordenação
+  useEffect(() => { setPaginaAtual(1); }, [taxaAtiva, itensPorPagina, ordenacao]);
+
+  const handleSort = (coluna) => {
+    setOrdenacao(prev => ({
+      coluna,
+      direcao: prev.coluna === coluna && prev.direcao === 'asc' ? 'desc' : 'asc'
+    }));
+  };
 
   const agrupamentoReal = useMemo(() => {
     const grupos = {};
@@ -333,8 +349,24 @@ function TelaAnaliseMassa({ dados, onSalvarTratativas }) {
       });
     });
 
-    return Object.values(grupos).sort((a, b) => Math.abs(b.impacto) - Math.abs(a.impacto));
+    return Object.values(grupos);
   }, [tabela, taxaAtiva]);
+
+  // Aplicação da Ordenação
+  const agrupamentoOrdenado = [...agrupamentoReal].sort((a, b) => {
+    let valA = a[ordenacao.coluna];
+    let valB = b[ordenacao.coluna];
+    
+    // CORREÇÃO: Removido o Math.abs() para permitir a ordenação numérica contínua (negativos para positivos)
+    if (typeof valA === 'string') { valA = valA.toLowerCase(); valB = valB.toLowerCase(); }
+    if (valA < valB) return ordenacao.direcao === 'asc' ? -1 : 1;
+    if (valA > valB) return ordenacao.direcao === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  // Fatiamento da Paginação
+  const totalPaginas = Math.ceil(agrupamentoOrdenado.length / itensPorPagina) || 1;
+  const dadosPaginados = agrupamentoOrdenado.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina);
 
   const fecharModal = () => {
     setPadraoSelecionado(null); setItensSelecionados([]); setDecisaoFinal(''); setMotivoReprovacao(''); setObsLivre('');
@@ -437,19 +469,33 @@ function TelaAnaliseMassa({ dados, onSalvarTratativas }) {
         <div className="custom-scrollbar" style={{ overflow: 'auto', flex: 1 }}>
           <table className="table table-borderless table-hover table-sm mb-0 align-middle text-center" style={{ fontSize: '12px', backgroundColor: 'transparent' }}>
             <thead style={{ position: 'sticky', top: 0, backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(5px)', zIndex: 1, borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-              <tr className="text-uppercase" style={{ fontSize: '10px', color: 'var(--text-aux)' }}>
-                <th className="px-3 py-3 text-start">Transportador</th>
-                <th className="px-3 py-3">Tabela Ariba</th>
-                <th className="px-3 py-3">Rota (UF)</th>
-                <th className="px-3 py-3">Tarifa Negociada</th>
-                <th className="px-3 py-3">Divergência (%)</th>
-                <th className="px-3 py-3">Volume</th>
-                <th className="px-3 py-3">Impacto (R$)</th>
+              <tr className="text-uppercase" style={{ fontSize: '10px', color: 'var(--text-aux)', cursor: 'pointer' }}>
+                <th className="px-3 py-3 text-start" onClick={() => handleSort('transportador')}>
+                  Transportador {ordenacao.coluna === 'transportador' && (ordenacao.direcao === 'asc' ? <FaArrowUp/> : <FaArrowDown/>)}
+                </th>
+                <th className="px-3 py-3" onClick={() => handleSort('tabelaAriba')}>
+                  Tabela Ariba {ordenacao.coluna === 'tabelaAriba' && (ordenacao.direcao === 'asc' ? <FaArrowUp/> : <FaArrowDown/>)}
+                </th>
+                <th className="px-3 py-3" onClick={() => handleSort('rota')}>
+                  Rota (UF) {ordenacao.coluna === 'rota' && (ordenacao.direcao === 'asc' ? <FaArrowUp/> : <FaArrowDown/>)}
+                </th>
+                <th className="px-3 py-3" onClick={() => handleSort('tarifaNegociada')}>
+                  Tarifa Negociada {ordenacao.coluna === 'tarifaNegociada' && (ordenacao.direcao === 'asc' ? <FaArrowUp/> : <FaArrowDown/>)}
+                </th>
+                <th className="px-3 py-3" onClick={() => handleSort('divergenciaPct')}>
+                  Divergência (%) {ordenacao.coluna === 'divergenciaPct' && (ordenacao.direcao === 'asc' ? <FaArrowUp/> : <FaArrowDown/>)}
+                </th>
+                <th className="px-3 py-3" onClick={() => handleSort('qtd')}>
+                  Volume {ordenacao.coluna === 'qtd' && (ordenacao.direcao === 'asc' ? <FaArrowUp/> : <FaArrowDown/>)}
+                </th>
+                <th className="px-3 py-3" onClick={() => handleSort('impacto')}>
+                  Impacto (R$) {ordenacao.coluna === 'impacto' && (ordenacao.direcao === 'asc' ? <FaArrowUp/> : <FaArrowDown/>)}
+                </th>
                 <th className="px-3 py-3">Ação</th>
               </tr>
             </thead>
             <tbody className="tabular-nums">
-              {agrupamentoReal.map((row) => (
+              {dadosPaginados.map((row) => (
                 <tr key={row.id} style={{ borderBottom: '1px solid rgba(0,0,0,0.02)' }}>
                   <td className="px-3 py-2 text-start fw-bold" style={{ color: 'var(--primary)' }}>
                     <div className="d-flex align-items-center gap-2">
@@ -478,8 +524,35 @@ function TelaAnaliseMassa({ dados, onSalvarTratativas }) {
                   </td>
                 </tr>
               ))}
+              {dadosPaginados.length === 0 && (<tr><td colSpan="8" className="text-center py-5 fw-bold" style={{ color: 'var(--text-aux)' }}>Nenhuma divergência encontrada.</td></tr>)}
             </tbody>
           </table>
+        </div>
+
+        {/* RODAPÉ DE PAGINAÇÃO - TELA AUDITAR TAXA */}
+        <div className="d-flex justify-content-between align-items-center p-3 border-top" style={{ backgroundColor: 'rgba(255,255,255,0.9)' }}>
+          <div className="d-flex align-items-center gap-3">
+            <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)' }}>
+              A mostrar {agrupamentoOrdenado.length > 0 ? (paginaAtual - 1) * itensPorPagina + 1 : 0} a {Math.min(paginaAtual * itensPorPagina, agrupamentoOrdenado.length)} de {agrupamentoOrdenado.length} Agrupamentos
+            </span>
+            <select className="form-select form-select-sm shadow-sm fw-bold" style={{ width: '130px', fontSize: '12px', color: 'var(--text-main)', border: '1px solid rgba(0,0,0,0.1)' }} value={itensPorPagina} onChange={e => setItensPorPagina(Number(e.target.value))}>
+              <option value={10}>10 por pág.</option>
+              <option value={25}>25 por pág.</option>
+              <option value={50}>50 por pág.</option>
+              <option value={100}>100 por pág.</option>
+            </select>
+          </div>
+          <div className="btn-group shadow-sm">
+            <button className="btn btn-sm btn-light fw-bold" style={{ fontSize: '12px', color: 'var(--text-main)', border: '1px solid rgba(0,0,0,0.1)' }} onClick={() => setPaginaAtual(prev => Math.max(prev - 1, 1))} disabled={paginaAtual === 1}>
+              Anterior
+            </button>
+            <button className="btn btn-sm btn-light fw-bold" style={{ fontSize: '12px', color: 'var(--text-main)', border: '1px solid rgba(0,0,0,0.1)', cursor: 'default' }} disabled>
+              Página {paginaAtual} de {totalPaginas}
+            </button>
+            <button className="btn btn-sm btn-light fw-bold" style={{ fontSize: '12px', color: 'var(--text-main)', border: '1px solid rgba(0,0,0,0.1)' }} onClick={() => setPaginaAtual(prev => Math.min(prev + 1, totalPaginas))} disabled={paginaAtual === totalPaginas}>
+              Próxima
+            </button>
+          </div>
         </div>
       </div>
 
@@ -612,6 +685,185 @@ function TelaEmDesenvolvimento({ titulo }) {
 }
 
 // ============================================================================
+// COMPONENTE: TELA DE CONFIGURAÇÕES (Perfil e Cadastro Dinâmico)
+// ============================================================================
+function TelaConfiguracoes({ usuarioLogado, onAtualizarUsuario }) {
+  // O estado agora inicia lendo as informações reais do usuário logado
+  const [perfilForm, setPerfilForm] = useState({ 
+    nome: usuarioLogado?.nome || '',
+    email: usuarioLogado?.email || '',
+    funcao: usuarioLogado?.funcao || 'Especialista', 
+    departamento: usuarioLogado?.departamento || 'Transportes',
+    slack: usuarioLogado?.slack_id || ('@' + (usuarioLogado?.nome ? usuarioLogado.nome.toLowerCase().replace(/\s+/g, '.') : 'usuario')),
+    senhaAtual: '',
+    novaSenha: '', 
+    confirmaSenha: '' 
+  });
+
+  const [carregando, setCarregando] = useState(false);
+  const [mensagem, setMensagem] = useState({ texto: '', tipo: '' });
+
+  // Sincroniza caso o usuário logado mude em background
+  useEffect(() => {
+    if (usuarioLogado) {
+      setPerfilForm(prev => ({
+        ...prev,
+        nome: usuarioLogado.nome || '',
+        email: usuarioLogado.email || '',
+        funcao: usuarioLogado.funcao || prev.funcao,
+        departamento: usuarioLogado.departamento || prev.departamento,
+        slack: usuarioLogado.slack_id || prev.slack
+      }));
+    }
+  }, [usuarioLogado]);
+
+  const getIniciais = (nome) => {
+    if (!nome) return 'GB';
+    const partes = nome.trim().split(' ');
+    if (partes.length === 1) return partes[0].substring(0, 2).toUpperCase();
+    return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
+  };
+
+  const handleSalvar = async () => {
+    // Validação básica de senha
+    if (perfilForm.novaSenha && perfilForm.novaSenha !== perfilForm.confirmaSenha) {
+      setMensagem({ texto: 'A nova senha e a confirmação não conferem.', tipo: 'danger' });
+      return;
+    }
+
+    setCarregando(true);
+    setMensagem({ texto: '', tipo: '' });
+
+    // [FUTURO - INTEGRAÇÃO COM BACKEND]
+    /*
+    try {
+      const payload = {
+        id: usuarioLogado.id,
+        funcao: perfilForm.funcao,
+        departamento: perfilForm.departamento,
+        slack_id: perfilForm.slack,
+        // Só envia senhas se o usuário quiser alterar (e deve exigir a atual no backend)
+        senhaAtual: perfilForm.senhaAtual,
+        novaSenha: perfilForm.novaSenha
+      };
+      
+      const response = await axios.put('http://localhost:3000/api/usuarios/perfil', payload, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      setMensagem({ texto: 'Perfil atualizado com sucesso!', tipo: 'success' });
+      // Atualiza o estado global no App.jsx se a função for provida
+      if(onAtualizarUsuario) onAtualizarUsuario(response.data.usuario);
+      
+      // Limpa os campos de senha
+      setPerfilForm(prev => ({ ...prev, senhaAtual: '', novaSenha: '', confirmaSenha: '' }));
+
+    } catch (error) {
+      setMensagem({ texto: error.response?.data?.erro || 'Erro ao atualizar perfil.', tipo: 'danger' });
+    } finally {
+      setCarregando(false);
+    }
+    */
+
+    // [PRESENTE - MOCK]
+    setTimeout(() => {
+      setMensagem({ texto: 'Perfil atualizado com sucesso (Mock)!', tipo: 'success' });
+      setCarregando(false);
+      setPerfilForm(prev => ({ ...prev, senhaAtual: '', novaSenha: '', confirmaSenha: '' }));
+      if(onAtualizarUsuario) onAtualizarUsuario({ ...usuarioLogado, ...perfilForm });
+    }, 800);
+  };
+
+  return (
+    <div className="d-flex flex-column gap-3 h-100 mx-auto" style={{ maxWidth: '900px', width: '100%' }}>
+      <div className="px-2 mt-2 mb-2 d-flex justify-content-between align-items-center">
+        <div>
+          <h4 className="fw-bold mb-1" style={{ color: 'var(--text-main)', letterSpacing: '-0.5px' }}>Configurações de Perfil</h4>
+          <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: '600' }}>Gerencie suas informações, cargo e credenciais de acesso.</span>
+        </div>
+        {usuarioLogado?.role === 'ADMIN' && (
+          <span className="badge bg-danger shadow-sm px-3 py-2" style={{borderRadius: 'var(--radius-pill)'}}>Perfil Administrador</span>
+        )}
+      </div>
+
+      <div className="glass-panel p-4 d-flex flex-column custom-scrollbar shadow-sm flex-grow-1" style={{ overflowY: 'auto' }}>
+        <div className="d-flex flex-column align-items-center mb-4 pb-4 border-bottom" style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
+          <div className="position-relative mb-3">
+            <div className="user-avatar shadow-sm d-flex align-items-center justify-content-center" style={{ width: '100px', height: '100px', borderRadius: '50%', backgroundColor: 'var(--card-blue)', color: 'var(--primary)', fontSize: '32px', fontWeight: '800', border: '4px solid var(--card-solid)' }}>
+              {getIniciais(perfilForm.nome)}
+            </div>
+          </div>
+          <h5 className="fw-bold mb-0" style={{ color: 'var(--text-main)' }}>{perfilForm.nome}</h5>
+          <span className="text-muted" style={{ fontSize: '12px', fontWeight: '600' }}>{perfilForm.email}</span>
+        </div>
+
+        {mensagem.texto && (
+          <div className={`alert alert-${mensagem.tipo} py-2 px-3 fw-bold text-center`} style={{ fontSize: '12px', borderRadius: 'var(--radius-md)' }}>
+            {mensagem.texto}
+          </div>
+        )}
+
+        <div className="row g-4 mb-4">
+          <div className="col-md-6">
+            <label className="form-label mb-1" style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-aux)', textTransform: 'uppercase' }}>Nome Completo (SSO)</label>
+            <input type="text" className="form-control form-control-sm fw-bold shadow-sm" style={{ fontSize: '13px', padding: '10px 15px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(0,0,0,0.05)', backgroundColor: '#f8f9fa' }} value={perfilForm.nome} disabled />
+          </div>
+          <div className="col-md-6">
+            <label className="form-label mb-1" style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-aux)', textTransform: 'uppercase' }}>Email Corporativo (SSO)</label>
+            <input type="text" className="form-control form-control-sm fw-bold shadow-sm" style={{ fontSize: '13px', padding: '10px 15px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(0,0,0,0.05)', backgroundColor: '#f8f9fa' }} value={perfilForm.email} disabled />
+          </div>
+          <div className="col-md-4">
+            <label className="form-label mb-1" style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-aux)', textTransform: 'uppercase' }}>Função</label>
+            <input type="text" className="form-control form-control-sm fw-bold shadow-sm" style={{ fontSize: '13px', padding: '10px 15px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(0,0,0,0.1)', color: 'var(--text-main)' }} value={perfilForm.funcao} onChange={(e) => setPerfilForm({...perfilForm, funcao: e.target.value})} />
+          </div>
+          <div className="col-md-4">
+            <label className="form-label mb-1" style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-aux)', textTransform: 'uppercase' }}>Departamento</label>
+            <input type="text" className="form-control form-control-sm fw-bold shadow-sm" style={{ fontSize: '13px', padding: '10px 15px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(0,0,0,0.1)', color: 'var(--text-main)' }} value={perfilForm.departamento} onChange={(e) => setPerfilForm({...perfilForm, departamento: e.target.value})} />
+          </div>
+          <div className="col-md-4">
+            <label className="form-label mb-1" style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-aux)', textTransform: 'uppercase' }}>Usuário Slack</label>
+            <input type="text" className="form-control form-control-sm fw-bold shadow-sm" style={{ fontSize: '13px', padding: '10px 15px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(0,0,0,0.1)', color: 'var(--text-main)' }} value={perfilForm.slack} onChange={(e) => setPerfilForm({...perfilForm, slack: e.target.value})} />
+          </div>
+        </div>
+
+        {/* SEÇÃO DE SEGURANÇA - SÓ EXIBE SE O USUÁRIO FOR LOCAL (NÃO SSO) */}
+        {!usuarioLogado?.sso_provider && (
+          <div className="p-4 mb-4" style={{ backgroundColor: 'rgba(0,0,0,0.02)', borderRadius: 'var(--radius-lg)', border: '1px solid rgba(0,0,0,0.05)' }}>
+            <h6 className="fw-bold mb-3" style={{ fontSize: '12px', color: 'var(--text-main)', textTransform: 'uppercase' }}>Segurança & Acesso (Login Local)</h6>
+            <div className="row g-3">
+              <div className="col-md-4">
+                <label className="form-label mb-1" style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-aux)', textTransform: 'uppercase' }}>Senha Atual</label>
+                <input type="password" className="form-control form-control-sm shadow-sm" style={{ fontSize: '13px', padding: '10px 15px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(0,0,0,0.1)' }} placeholder="Obrigatório para alterar" value={perfilForm.senhaAtual} onChange={(e) => setPerfilForm({...perfilForm, senhaAtual: e.target.value})} />
+              </div>
+              <div className="col-md-4">
+                <label className="form-label mb-1" style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-aux)', textTransform: 'uppercase' }}>Nova Senha</label>
+                <input type="password" className="form-control form-control-sm shadow-sm" style={{ fontSize: '13px', padding: '10px 15px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(0,0,0,0.1)' }} placeholder="••••••••" value={perfilForm.novaSenha} onChange={(e) => setPerfilForm({...perfilForm, novaSenha: e.target.value})} disabled={!perfilForm.senhaAtual} />
+              </div>
+              <div className="col-md-4">
+                <label className="form-label mb-1" style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-aux)', textTransform: 'uppercase' }}>Confirmar Nova Senha</label>
+                <input type="password" className="form-control form-control-sm shadow-sm" style={{ fontSize: '13px', padding: '10px 15px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(0,0,0,0.1)' }} placeholder="••••••••" value={perfilForm.confirmaSenha} onChange={(e) => setPerfilForm({...perfilForm, confirmaSenha: e.target.value})} disabled={!perfilForm.senhaAtual} />
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <div className="mt-auto d-flex justify-content-end">
+          <button 
+            className="btn text-white fw-bold shadow-sm d-flex align-items-center px-4 py-2" 
+            style={{ backgroundColor: 'var(--primary)', borderRadius: 'var(--radius-pill)', fontSize: '13px' }} 
+            onClick={handleSalvar}
+            disabled={carregando}
+          >
+            {carregando ? <span className="spinner-border spinner-border-sm me-2"></span> : <FaCheck className="me-2"/>}
+            Salvar Alterações
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
 // COMPONENTE PRINCIPAL (Orquestrador)
 // ============================================================================
 export default function App() {
@@ -619,11 +871,15 @@ export default function App() {
   const [telaAtiva, setTelaAtiva] = useState('home');
   const [carregando, setCarregando] = useState(false);
   const [painelFiltrosAberto, setPainelFiltrosAberto] = useState(false);
-  const [menuUsuarioAberto, setMenuUsuarioAberto] = useState(false);
-  const [perfilForm, setPerfilForm] = useState({ funcao: 'Especialista em Logística', senha: '', confirmaSenha: '' });
+  // Controle de expansão do Menu Lateral Dropdown
+  const [menuExpansivel, setMenuExpansivel] = useState({ acompanhamento: false, auditoria: false, gerenciar: false, relatorios: false });
+  const toggleMenu = (menu) => setMenuExpansivel(prev => ({ ...prev, [menu]: !prev[menu] }));
 
   // NOVO: Estado Global de Tratativas para sincronizar decisões entre as telas
   const [tratativasGlobais, setTratativasGlobais] = useState({});
+
+  // ESTADO GLOBAL: Compartilha as Generalidades cadastradas entre as telas (Inicia vazio)
+  const [historicoGeneralidades, setHistoricoGeneralidades] = useState([]);
 
   const handleSalvarTratativas = (novasTratativas) => {
     setTratativasGlobais(prev => {
@@ -671,13 +927,19 @@ export default function App() {
   const filtrosAtuais = filtros[telaAtiva] || filtrosPadrao;
   const dadosAtuais = dadosAba[telaAtiva];
   
-  const filtrosOpcoes = dadosAba.visaoGeral?.filtrosOpcoes || dadosAba.painelAuditoria?.filtrosOpcoes || dadosAba.auditoria?.filtrosOpcoes || dadosAba.relatorio?.filtrosOpcoes || {};
+  // CORREÇÃO: Adicionado dadosAba.analiseMassa para garantir que as opções carreguem na Auditar Taxas
+  const filtrosOpcoes = dadosAba.visaoGeral?.filtrosOpcoes || dadosAba.painelAuditoria?.filtrosOpcoes || dadosAba.auditoria?.filtrosOpcoes || dadosAba.analiseMassa?.filtrosOpcoes || dadosAba.relatorio?.filtrosOpcoes || {};
 
   const atualizarFiltro = (campo, valor) => {
     setFiltros(prev => ({
       ...prev,
       [telaAtiva]: { ...prev[telaAtiva], [campo]: valor }
     }));
+  };
+
+  const limparFiltros = () => {
+    setFiltros(prev => ({ ...prev, [telaAtiva]: { ...filtrosPadrao } }));
+    carregarDados(filtrosPadrao);
   };
 
   const carregarDados = (filtrosOverride = null) => {
@@ -692,11 +954,6 @@ export default function App() {
         setCarregando(false); 
       })
       .catch(error => { console.error("Erro BQ:", error); setCarregando(false); });
-  };
-
-  const limparFiltros = () => {
-    setFiltros(prev => ({ ...prev, [telaAtiva]: { ...filtrosPadrao } }));
-    carregarDados(filtrosPadrao);
   };
 
   useEffect(() => { 
@@ -749,83 +1006,110 @@ export default function App() {
   };
 
   return (
-    <div className="app-container" style={{ display: 'flex', width: '100%', height: '100vh', padding: '20px 24px', gap: '24px', backgroundColor: 'transparent', boxSizing: 'border-box' }}>
+    <div className="app-container" style={{ display: 'flex', width: '100%', height: '100vh', backgroundColor: 'var(--bg-page)', boxSizing: 'border-box', overflow: 'hidden' }}>
       
-      {/* FLOATING NAVIGATION (AppShell Lateral) */}
-      <aside className="d-flex flex-column" style={{
-        backgroundColor: 'var(--dark-highlight)',
-        borderRadius: 'var(--radius-xl)',
-        width: '260px',
-        minWidth: '260px',
-        height: 'calc(100vh - 40px)',
-        boxShadow: '0 12px 32px rgba(0,0,0,0.15)',
-        zIndex: 100,
-        overflow: 'hidden',
-        flexShrink: 0
-      }}>
+      {/* MENU LATERAL FULL-HEIGHT */}
+      <aside className="d-flex flex-column" style={{ backgroundColor: 'var(--dark-highlight)', width: '260px', minWidth: '260px', height: '100vh', boxShadow: '2px 0 10px rgba(0,0,0,0.15)', zIndex: 100, flexShrink: 0 }}>
         
-        {/* LOGO CLICÁVEL DIRECIONANDO PARA HOME */}
-        <div 
-          className="d-flex flex-column align-items-center py-4 mb-2 hover-scale" 
-          style={{ cursor: 'pointer', transition: 'all 0.2s' }}
-          onClick={() => setTelaAtiva('home')}
-          title="Ir para a Página Inicial"
-        >
-          <div style={{
-            width: '52px', height: '52px', backgroundColor: 'var(--card-solid)', 
-            borderRadius: 'var(--radius-lg)', display: 'flex', alignItems: 'center', 
-            justifyContent: 'center', marginBottom: '5px', boxShadow: '0 4px 0px rgba(0,0,0,0.05)'
-          }}>
-            <img src="/logo.png" alt="Logo GB" style={{ width: '60px', height: '60px', objectFit: 'contain' }} />
+        {/* LOGO E ÁREA DE TRANSPORTES */}
+        <div className="d-flex flex-column align-items-center py-4 mb-2 hover-scale" style={{ cursor: 'pointer', transition: 'all 0.2s' }} onClick={() => setTelaAtiva('home')}>
+          <div className="d-flex align-items-center gap-3">
+            <div style={{ width: '45px', height: '45px', backgroundColor: 'var(--card-solid)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 0px rgba(0,0,0,0.05)' }}>
+              <img src="/logo.png" alt="Logo GB" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+            </div>
+            <h6 className="fw-bold text-white mb-0" style={{ fontSize: '18px', letterSpacing: '0.5px' }}>Transportes GB</h6>
           </div>
-          <h6 className="fw-bold text-white mb-0" style={{ fontSize: '15px', letterSpacing: '0.5px' }}>Transportes GB</h6>
+          <span className="mt-2 fw-bold" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Auditoria de Fretes</span>
         </div>
         
-        {/* NOVA OPÇÃO HOME NO MENU LATERAL */}
+        <div className="sidebar-menu custom-scrollbar" style={{ overflowY: 'auto', flex: 1, padding: '0 10px' }}>
+          
           <button className={`menu-item ${telaAtiva === 'home' ? 'active' : ''}`} onClick={() => setTelaAtiva('home')} style={{ borderRadius: 'var(--radius-md)' }}>
             <FaHome className="menu-icon"/> Home
           </button>
 
-        <div className="sidebar-menu custom-scrollbar" style={{ overflowY: 'auto', flex: 100, padding: '0 10px' }}>
-          <div className="menu-section" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>DASHBOARD</div>
-          
-          <button className={`menu-item ${telaAtiva === 'visaoGeral' ? 'active' : ''}`} onClick={() => setTelaAtiva('visaoGeral')} style={{ borderRadius: 'var(--radius-md)' }}>
-            <MdSpaceDashboard className="menu-icon"/> Painel Geral
-          </button>
-          <button className={`menu-item ${telaAtiva === 'painelAuditoria' ? 'active' : ''}`} onClick={() => setTelaAtiva('painelAuditoria')} style={{ borderRadius: 'var(--radius-md)' }}>
-            <FaChartLine className="menu-icon"/> Painel Auditoria
-          </button>
-          
-          <div className="menu-section mt-4" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>AUDITORIA</div>
-          <button className={`menu-item ${telaAtiva === 'auditoria' ? 'active' : ''}`} onClick={() => setTelaAtiva('auditoria')} style={{ borderRadius: 'var(--radius-md)' }}>
-            <FaClipboardList className="menu-icon"/> Fila por CT-e
-          </button>
-          <button className={`menu-item ${telaAtiva === 'analiseMassa' ? 'active' : ''}`} onClick={() => setTelaAtiva('analiseMassa')} style={{ borderRadius: 'var(--radius-md)' }}>
-            <FaLayerGroup className="menu-icon"/> Fila por Taxas
-          </button>
+          {/* SESSÃO: ACOMPANHAMENTO */}
+          <div className="d-flex flex-column mt-2">
+            <button className="menu-item justify-content-between" onClick={() => toggleMenu('acompanhamento')} style={{ borderRadius: 'var(--radius-md)' }}>
+              <div className="d-flex align-items-center"><MdSpaceDashboard className="menu-icon"/> Acompanhamento</div>
+              {menuExpansivel.acompanhamento ? <FaChevronDown size={10}/> : <FaChevronRight size={10}/>}
+            </button>
+            {menuExpansivel.acompanhamento && (
+              <div className="d-flex flex-column ms-4 mt-1 gap-1 border-start border-secondary ps-2">
+                <button className={`menu-item py-2 ${telaAtiva === 'visaoGeral' ? 'active' : ''}`} onClick={() => setTelaAtiva('visaoGeral')} style={{ fontSize: '11px', borderRadius: 'var(--radius-md)' }}>Painel Geral</button>
+                <button className={`menu-item py-2 ${telaAtiva === 'painelAuditoria' ? 'active' : ''}`} onClick={() => setTelaAtiva('painelAuditoria')} style={{ fontSize: '11px', borderRadius: 'var(--radius-md)' }}>Painel Auditoria</button>
+              </div>
+            )}
+          </div>
 
-          <div className="menu-section mt-4" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>TABELAS DE FRETE</div>
-          <button className={`menu-item ${telaAtiva === 'geracaoTemplate' ? 'active' : ''}`} onClick={() => setTelaAtiva('geracaoTemplate')} style={{ borderRadius: 'var(--radius-md)' }}>
-            <FaFileContract className="menu-icon"/> Geração Template
-          </button>
-          <button className={`menu-item ${telaAtiva === 'repositorioTabelas' ? 'active' : ''}`} onClick={() => setTelaAtiva('repositorioTabelas')} style={{ borderRadius: 'var(--radius-md)' }}>
-            <FaSearch className="menu-icon"/> Repositório Tabelas
-          </button>
+          {/* SESSÃO: AUDITORIA */}
+          <div className="d-flex flex-column mt-2">
+            <button className="menu-item justify-content-between" onClick={() => toggleMenu('auditoria')} style={{ borderRadius: 'var(--radius-md)' }}>
+              <div className="d-flex align-items-center"><FaClipboardList className="menu-icon"/> Auditoria</div>
+              {menuExpansivel.auditoria ? <FaChevronDown size={10}/> : <FaChevronRight size={10}/>}
+            </button>
+            {menuExpansivel.auditoria && (
+              <div className="d-flex flex-column ms-4 mt-1 gap-1 border-start border-secondary ps-2">
+                <button className={`menu-item py-2 ${telaAtiva === 'auditoria' ? 'active' : ''}`} onClick={() => setTelaAtiva('auditoria')} style={{ fontSize: '11px', borderRadius: 'var(--radius-md)' }}>Auditar CT-e</button>
+                <button className={`menu-item py-2 ${telaAtiva === 'analiseMassa' ? 'active' : ''}`} onClick={() => setTelaAtiva('analiseMassa')} style={{ fontSize: '11px', borderRadius: 'var(--radius-md)' }}>Auditar Taxas</button>
+              </div>
+            )}
+          </div>
+
+          {/* SESSÃO: GERENCIAR */}
+          <div className="d-flex flex-column mt-2">
+            <button className="menu-item justify-content-between" onClick={() => toggleMenu('gerenciar')} style={{ borderRadius: 'var(--radius-md)' }}>
+              <div className="d-flex align-items-center"><FaFileContract className="menu-icon"/> Gerenciar</div>
+              {menuExpansivel.gerenciar ? <FaChevronDown size={10}/> : <FaChevronRight size={10}/>}
+            </button>
+            {menuExpansivel.gerenciar && (
+              <div className="d-flex flex-column ms-4 mt-1 gap-1 border-start border-secondary ps-2">
+                <button className={`menu-item py-2 ${telaAtiva === 'geracaoTemplate' ? 'active' : ''}`} onClick={() => setTelaAtiva('geracaoTemplate')} style={{ fontSize: '11px', borderRadius: 'var(--radius-md)' }}>Central de Tabelas de Frete</button>
+                <button className={`menu-item py-2 ${telaAtiva === 'cadastroGeneralidades' ? 'active' : ''}`} onClick={() => setTelaAtiva('cadastroGeneralidades')} style={{ fontSize: '11px', borderRadius: 'var(--radius-md)' }}>Central de Generalidades</button>
+              </div>
+            )}
+          </div>
+
+          {/* SESSÃO: RELATÓRIOS */}
+          <div className="d-flex flex-column mt-2">
+            <button className="menu-item justify-content-between" onClick={() => toggleMenu('relatorios')} style={{ borderRadius: 'var(--radius-md)' }}>
+              <div className="d-flex align-items-center"><FaHistory className="menu-icon"/> Relatórios</div>
+              {menuExpansivel.relatorios ? <FaChevronDown size={10}/> : <FaChevronRight size={10}/>}
+            </button>
+            {menuExpansivel.relatorios && (
+              <div className="d-flex flex-column ms-4 mt-1 gap-1 border-start border-secondary ps-2">
+                <button className={`menu-item py-2 ${telaAtiva === 'relatorio' ? 'active' : ''}`} onClick={() => setTelaAtiva('relatorio')} style={{ fontSize: '11px', borderRadius: 'var(--radius-md)' }}>Relatórios Gerais</button>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="mt-auto px-3 pb-4 pt-2">
-          <div className="menu-section mb-2" style={{ paddingLeft: '10px', color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>HISTÓRICO</div>
-          <button className={`menu-item ${telaAtiva === 'relatorio' ? 'active' : ''}`} onClick={() => setTelaAtiva('relatorio')} style={{ borderRadius: 'var(--radius-md)' }}>
-            <FaHistory className="menu-icon"/> Relatórios
+        {/* RODAPÉ DO MENU LATERAL */}
+        <div className="mt-auto px-3 pb-3 pt-3 d-flex flex-column gap-2" style={{ backgroundColor: 'rgba(0,0,0,0.1)' }}>
+          <button className={`menu-item ${telaAtiva === 'configuracoes' ? 'active' : ''}`} onClick={() => setTelaAtiva('configuracoes')} style={{ borderRadius: 'var(--radius-md)' }}>
+            <FaCog className="menu-icon"/> Configurações
+          </button>
+          
+          <div className="d-flex align-items-center p-2 hover-scale mt-1" style={{ cursor: 'pointer', borderRadius: 'var(--radius-md)', backgroundColor: 'rgba(255,255,255,0.05)' }} onClick={() => setTelaAtiva('configuracoes')} title={`Meu Perfil (${usuarioLogado.nome})`}>
+            <div className="user-avatar shadow-sm flex-shrink-0" style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-pill)', backgroundColor: 'var(--card-blue)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '800' }}>
+              {getIniciais(usuarioLogado.nome)}
+            </div>
+            <div className="ms-3 d-flex flex-column overflow-hidden text-truncate">
+              <span className="text-white fw-bold" style={{ fontSize: '12px' }}>{usuarioLogado.nome}</span>
+              <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '10px' }}>Ver Perfil</span>
+            </div>
+          </div>
+
+          <button className="menu-item mt-1 d-flex align-items-center" onClick={() => setUsuarioLogado(null)} style={{ borderRadius: 'var(--radius-md)', fontSize: '11px', color: '#F1948A', padding: '8px 15px' }}>
+            <FaSignInAlt className="menu-icon" style={{ transform: 'rotate(180deg)', fontSize: '13px', color: '#F1948A' }}/> Sair do Sistema
           </button>
         </div>
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <main className="main-area" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: 'calc(100vh - 40px)', overflow: 'hidden' }}>
+      <main className="main-area" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', padding: '20px 24px 20px 24px' }}>
         
-        {/* PAGE HEADER COM AVATAR */}
-        <header className="d-flex justify-content-between align-items-center" style={{ padding: '5px 10px 20px 10px' }}>
+        <header className="d-flex justify-content-between align-items-center" style={{ padding: '0 10px 20px 10px' }}>
           <div className="fw-bold" style={{ fontSize: '17px', color: 'var(--text-main)' }}>{getBreadcrumb()}</div>
           
           <div className="d-flex gap-3 align-items-center">
@@ -845,27 +1129,11 @@ export default function App() {
                 </button>
               </>
             )}
-
-            {/* AVATAR DO UTILIZADOR */}
-            <div 
-              className="user-avatar shadow-sm"
-              style={{
-                width: '44px', height: '44px', borderRadius: 'var(--radius-pill)',
-                backgroundColor: 'var(--card-blue)', color: 'var(--primary)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '15px', fontWeight: '800', cursor: 'pointer',
-                border: '2px solid var(--card-solid)', marginLeft: '10px'
-              }} 
-              title={`Meu Perfil (${usuarioLogado.nome})`} 
-              onClick={() => setMenuUsuarioAberto(true)}
-            >
-              {getIniciais(usuarioLogado.nome)}
-            </div>
           </div>
         </header>
 
         {/* CONTAINER DINÂMICO DE ECRÃS */}
-        <div className="content-wrapper custom-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '0 10px 10px 10px', borderRadius: 'var(--radius-xl)' }}>
+        <div className="content-wrapper custom-scrollbar d-flex flex-column" style={{ flex: 1, overflowY: 'auto', padding: '0 10px 10px 10px', borderRadius: 'var(--radius-xl)' }}>
           {/* NOVA TELA INICIAL (DASHBOARD/HOME COM ASSISTENTE) */}
           {telaAtiva === 'home' && <TelaInicial setMenuAtivo={setTelaAtiva} />}
 
@@ -880,6 +1148,8 @@ export default function App() {
           
           {telaAtiva === 'geracaoTemplate' && <TelaGeracaoTemplate />}
           {telaAtiva === 'repositorioTabelas' && <TelaEmDesenvolvimento titulo="Repositório de Tabelas e Contratos" />}
+          {telaAtiva === 'cadastroGeneralidades' && <TelaCadastroGeneralidades />}
+          {telaAtiva === 'configuracoes' && <TelaConfiguracoes usuarioLogado={usuarioLogado} />}
         </div>
 
         {/* PAINEL OFFCANVAS DE FILTROS */}
@@ -971,60 +1241,9 @@ export default function App() {
             </div>
           </div>
           <div className="offcanvas-footer p-4 border-top" style={{ backgroundColor: 'var(--card-solid)' }}>
-            <button className="btn w-100 fw-bold shadow-sm" style={{ backgroundColor: 'var(--dark-highlight)', color: 'white', borderRadius: 'var(--radius-md)', padding: '10px' }} onClick={() => { setPainelFiltrosAberto(false); carregarDados(); }}>Aplicar Filtros</button>
+            <button className="btn w-100 fw-bold shadow-sm" style={{ backgroundColor: 'var(--dark-highlight)', color: 'white', borderRadius: 'var(--radius-md)', padding: '10px' }} onClick={() => { setPainelFiltrosAberto(false); carregarDados(filtros[telaAtiva]); }}>Aplicar Filtros</button>
           </div>
         </div>
-
-        {/* MODAL PERFIL DO USUÁRIO (ESTILO FUTURISTA) */}
-        {menuUsuarioAberto && usuarioLogado && (
-          <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(20, 32, 42, 0.4)', backdropFilter: 'blur(6px)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div className="glass-panel d-flex flex-column shadow-lg" style={{ width: '420px', maxWidth: '90vw', borderRadius: 'var(--radius-xl)', overflow: 'hidden', backgroundColor: 'var(--card-solid)', border: '1px solid rgba(255,255,255,0.8)' }}>
-              
-              <div className="p-4 border-bottom d-flex justify-content-between align-items-center" style={{ backgroundColor: 'rgba(255,255,255,0.9)' }}>
-                <h6 className="fw-bold mb-0" style={{ color: 'var(--text-main)', fontSize: '16px' }}>Meu Perfil</h6>
-                <button className="btn btn-sm btn-light border-0 shadow-sm" style={{ borderRadius: 'var(--radius-pill)', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setMenuUsuarioAberto(false)}><FaTimes className="text-muted"/></button>
-              </div>
-              
-              <div className="p-4 custom-scrollbar" style={{ overflowY: 'auto', backgroundColor: '#F8FAFC', maxHeight: '80vh' }}>
-                <div className="mb-3">
-                  <label className="form-label mb-1" style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-aux)', textTransform: 'uppercase' }}>Nome Completo</label>
-                  <input type="text" className="form-control form-control-sm fw-bold" style={{ fontSize: '13px', padding: '10px 15px', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-page)', border: '1px solid rgba(0,0,0,0.05)', color: 'var(--text-secondary)' }} value={usuarioLogado.nome} disabled />
-                </div>
-                
-                <div className="mb-3">
-                  <label className="form-label mb-1" style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-aux)', textTransform: 'uppercase' }}>Email Corporativo</label>
-                  <input type="text" className="form-control form-control-sm fw-bold" style={{ fontSize: '13px', padding: '10px 15px', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-page)', border: '1px solid rgba(0,0,0,0.05)', color: 'var(--text-secondary)' }} value={usuarioLogado.email} disabled />
-                </div>
-                
-                <div className="mb-4">
-                  <label className="form-label mb-1" style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-aux)', textTransform: 'uppercase' }}>Função</label>
-                  <input type="text" className="form-control form-control-sm shadow-sm fw-bold" style={{ fontSize: '13px', padding: '10px 15px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(0,0,0,0.1)', color: 'var(--text-main)' }} value={perfilForm.funcao} onChange={(e) => setPerfilForm({...perfilForm, funcao: e.target.value})} />
-                  <div style={{ fontSize: '10px', color: 'var(--text-aux)', marginTop: '6px', fontWeight: '600' }}>Somente usuários master podem alterar permissões sistêmicas.</div>
-                </div>
-
-                <div className="p-3 mb-4" style={{ backgroundColor: 'white', borderRadius: 'var(--radius-lg)', border: '1px solid rgba(0,0,0,0.05)' }}>
-                  <h6 className="fw-bold mb-3" style={{ fontSize: '12px', color: 'var(--text-main)', textTransform: 'uppercase' }}>Segurança & Acesso</h6>
-                  <div className="mb-3">
-                    <label className="form-label mb-1" style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-aux)', textTransform: 'uppercase' }}>Nova Senha</label>
-                    <input type="password" className="form-control form-control-sm shadow-sm" style={{ fontSize: '13px', padding: '10px 15px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(0,0,0,0.1)' }} placeholder="••••••••" value={perfilForm.senha} onChange={(e) => setPerfilForm({...perfilForm, senha: e.target.value})} />
-                  </div>
-                  <div className="mb-1">
-                    <label className="form-label mb-1" style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-aux)', textTransform: 'uppercase' }}>Confirmar Senha</label>
-                    <input type="password" className="form-control form-control-sm shadow-sm" style={{ fontSize: '13px', padding: '10px 15px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(0,0,0,0.1)' }} placeholder="••••••••" value={perfilForm.confirmaSenha} onChange={(e) => setPerfilForm({...perfilForm, confirmaSenha: e.target.value})} />
-                  </div>
-                </div>
-
-                <button className="btn w-100 fw-bold shadow-sm mb-2 d-flex justify-content-center align-items-center" style={{ backgroundColor: 'var(--primary)', color: 'white', padding: '12px', borderRadius: 'var(--radius-md)', fontSize: '13px' }} onClick={() => { alert('Perfil atualizado com sucesso!'); setMenuUsuarioAberto(false); }}>
-                  <FaCheck className="me-2"/> Salvar Alterações
-                </button>
-                <button className="btn w-100 fw-bold d-flex justify-content-center align-items-center" style={{ backgroundColor: 'var(--status-error-bg)', color: 'var(--status-error-txt)', padding: '12px', borderRadius: 'var(--radius-md)', fontSize: '13px', border: '1px solid transparent' }} onClick={() => { setMenuUsuarioAberto(false); setUsuarioLogado(null); }}>
-                  <FaSignInAlt className="me-2" style={{ transform: 'rotate(180deg)' }}/> Sair do Sistema
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
       </main>
     </div>
   );
@@ -1361,7 +1580,18 @@ function TelaVisaoGeral({ nomeUsuario, dados }) {
                 <BarChart data={dadosRotaStackProntos} layout="vertical" margin={{ top: 0, right: 35, left: 10, bottom: 0 }} barGap={-10}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="rgba(0,0,0,0.05)" />
                   <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="rota" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: TEMA.textMain, fontWeight: '600', fontFamily: 'Urbanist'}} width={90} />
+                    
+                  {/* Adicionada a propriedade interval={0} no YAxis */}
+                  <YAxis 
+                    type="category" 
+                    dataKey="rota" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    interval={0} 
+                    tick={{fontSize: 10, fill: TEMA.textMain, fontWeight: '600', fontFamily: 'Urbanist'}} 
+                    width={90} 
+                  />
+                  
                   <Tooltip cursor={{fill: 'rgba(0,0,0,0.02)'}} contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.4)', backdropFilter: 'blur(10px)', backgroundColor: 'rgba(255,255,255,0.9)', fontSize: '11px', fontWeight: '700', fontFamily: 'Urbanist' }} formatter={tooltipFormatter} />
                   <Legend wrapperStyle={{ fontSize: '10px', fontWeight: '700', color: TEMA.textAux, fontFamily: 'Urbanist' }} iconType="circle" />
                   <Bar dataKey="faturado" name="Faturado" fill={TEMA.chart2} radius={[0, 4, 4, 0]} barSize={10}>
@@ -1670,16 +1900,24 @@ function TelaFilaAuditoria({ nomeUsuario, dados, tratativasGlobais, onSalvarTrat
   const [itensPorPagina, setItensPorPagina] = useState(50);
   const [itensSelecionados, setItensSelecionados] = useState([]);
   const [paginaAtual, setPaginaAtual] = useState(1);
+  const [ordenacao, setOrdenacao] = useState({ coluna: 'emissao', direcao: 'desc' });
 
-  // Retorna para a página 1 sempre que os filtros forem alterados
+  // Retorna para a página 1 sempre que os filtros ou ordenação forem alterados
   useEffect(() => {
     setPaginaAtual(1);
-  }, [filtroStatus, termoBusca, itensPorPagina]);
+  }, [filtroStatus, termoBusca, itensPorPagina, ordenacao]);
 
   const [decisaoFinal, setDecisaoFinal] = useState('');
   const [motivoReprovacao, setMotivoReprovacao] = useState('');
   const [obsLivre, setObsLivre] = useState('');
   const [obsTaxas, setObsTaxas] = useState({});
+
+  const handleSort = (coluna) => {
+    setOrdenacao(prev => ({
+      coluna,
+      direcao: prev.coluna === coluna && prev.direcao === 'asc' ? 'desc' : 'asc'
+    }));
+  };
 
   const TEMA = {
     chart1: '#2A6F9A', chart2: '#8EC3EA', chart3: '#2F9A7E', chart4: '#DF7659', chart5: '#CF9426',
@@ -1831,14 +2069,31 @@ function TelaFilaAuditoria({ nomeUsuario, dados, tratativasGlobais, onSalvarTrat
     return true;
   };
 
-  // 1. Aplica os filtros na base completa
+  // 1. Aplica os filtros locais na base completa
   const dadosFiltradosBase = filaReal
     .filter(c => filtroStatus === 'Todos' || c.status === filtroStatus)
     .filter(c => c.chave.includes(termoBusca) || c.transportador.toLowerCase().includes(termoBusca.toLowerCase()));
 
-  // 2. Calcula as métricas de paginação
-  const totalPaginas = Math.ceil(dadosFiltradosBase.length / itensPorPagina) || 1;
-  const dadosPaginados = dadosFiltradosBase.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina);  
+  // 2. Ordena a base filtrada
+  const dadosOrdenados = [...dadosFiltradosBase].sort((a, b) => {
+    let valA = a[ordenacao.coluna];
+    let valB = b[ordenacao.coluna];
+    
+    // Tratamento para ordenar do maior pro menor erro financeiro em "Diferença"
+    if (ordenacao.coluna === 'diffTotal') {
+      valA = Math.abs(valA);
+      valB = Math.abs(valB);
+    }
+    
+    if (typeof valA === 'string') { valA = valA.toLowerCase(); valB = valB.toLowerCase(); }
+    if (valA < valB) return ordenacao.direcao === 'asc' ? -1 : 1;
+    if (valA > valB) return ordenacao.direcao === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  // 3. Calcula as métricas de paginação usando a base final ordenada
+  const totalPaginas = Math.ceil(dadosOrdenados.length / itensPorPagina) || 1;
+  const dadosPaginados = dadosOrdenados.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina);  
 
 
   const getBadgeStatus = (status) => {
@@ -1958,16 +2213,32 @@ function TelaFilaAuditoria({ nomeUsuario, dados, tratativasGlobais, onSalvarTrat
         <div className="custom-scrollbar" style={{ overflowY: 'auto', maxHeight: '45vh' }}>
           <table className="table table-borderless table-hover table-sm mb-0 text-center align-middle" style={{ fontSize: '11px', backgroundColor: 'transparent' }}>
             <thead style={{ position: 'sticky', top: 0, backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(5px)', zIndex: 1, borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-              <tr className="text-uppercase" style={{ fontSize: '10px', color: 'var(--text-aux)' }}>
+              <tr className="text-uppercase" style={{ fontSize: '10px', color: 'var(--text-aux)', cursor: 'pointer' }}>
                 <th className="ps-3 py-3"><input className="form-check-input" type="checkbox" style={{ borderRadius: '4px' }} onChange={(e) => handleSelectAll(e, dadosPaginados)} checked={dadosPaginados.length > 0 && itensSelecionados.length === dadosPaginados.length}/></th>
-                <th className="text-start py-3">Chave CT-e</th>
-                <th className="py-3">Transportador</th>
-                <th className="py-3">Rota</th>
-                <th className="py-3">Emissão</th>
-                <th className="py-3">R$ Cobrado</th>
-                <th className="py-3">R$ Calculado</th>
-                <th className="py-3">Diferença</th>
-                <th className="py-3">Status</th>
+                <th className="text-start py-3" onClick={() => handleSort('chave')}>
+                  Chave CT-e {ordenacao.coluna === 'chave' && (ordenacao.direcao === 'asc' ? <FaArrowUp/> : <FaArrowDown/>)}
+                </th>
+                <th className="py-3" onClick={() => handleSort('transportador')}>
+                  Transportador {ordenacao.coluna === 'transportador' && (ordenacao.direcao === 'asc' ? <FaArrowUp/> : <FaArrowDown/>)}
+                </th>
+                <th className="py-3" onClick={() => handleSort('rota')}>
+                  Rota {ordenacao.coluna === 'rota' && (ordenacao.direcao === 'asc' ? <FaArrowUp/> : <FaArrowDown/>)}
+                </th>
+                <th className="py-3" onClick={() => handleSort('emissao')}>
+                  Emissão {ordenacao.coluna === 'emissao' && (ordenacao.direcao === 'asc' ? <FaArrowUp/> : <FaArrowDown/>)}
+                </th>
+                <th className="py-3" onClick={() => handleSort('vlrCobrado')}>
+                  R$ Cobrado {ordenacao.coluna === 'vlrCobrado' && (ordenacao.direcao === 'asc' ? <FaArrowUp/> : <FaArrowDown/>)}
+                </th>
+                <th className="py-3" onClick={() => handleSort('vlrCalculado')}>
+                  R$ Calculado {ordenacao.coluna === 'vlrCalculado' && (ordenacao.direcao === 'asc' ? <FaArrowUp/> : <FaArrowDown/>)}
+                </th>
+                <th className="py-3" onClick={() => handleSort('diffTotal')}>
+                  Diferença {ordenacao.coluna === 'diffTotal' && (ordenacao.direcao === 'asc' ? <FaArrowUp/> : <FaArrowDown/>)}
+                </th>
+                <th className="py-3" onClick={() => handleSort('status')}>
+                  Status {ordenacao.coluna === 'status' && (ordenacao.direcao === 'asc' ? <FaArrowUp/> : <FaArrowDown/>)}
+                </th>
                 <th className="py-3">Ação</th>
               </tr>
             </thead>
@@ -2109,6 +2380,7 @@ function TelaFilaAuditoria({ nomeUsuario, dados, tratativasGlobais, onSalvarTrat
                             ) : isDiff ? (
                               <select className="form-select form-select-sm shadow-sm mx-auto" style={{ fontSize: '10px', padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontWeight: '700', color: 'var(--text-main)', border: '1px solid rgba(0,0,0,0.1)', width: '90%' }} value={obsTaxas[taxa.nome] || ''} onChange={(e) => setObsTaxas({ ...obsTaxas, [taxa.nome]: e.target.value })}>
                                 <option value="">Ação...</option>
+                                <option value="taxa_indevida">ARREDONDAMENTO</option>
                                 <option value="taxa_indevida">TAXA INDEVIDA</option>
                                 <option value="erro_cadastro">ERRO DE CADASTRO</option>
                                 <option value="erro_vigencia">ERRO DE VIGÊNCIA</option>
@@ -2152,6 +2424,7 @@ function TelaFilaAuditoria({ nomeUsuario, dados, tratativasGlobais, onSalvarTrat
                             ) : isDiff ? (
                               <select className="form-select form-select-sm shadow-sm mx-auto" style={{ fontSize: '10px', padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontWeight: '700', color: 'var(--text-main)', border: '1px solid rgba(0,0,0,0.1)', width: '90%' }} value={obsTaxas[taxa.nome] || ''} onChange={(e) => setObsTaxas({ ...obsTaxas, [taxa.nome]: e.target.value })}>
                                 <option value="">Ação...</option>
+                                <option value="taxa_indevida">ARREDONDAMENTO</option>
                                 <option value="taxa_indevida">TAXA INDEVIDA</option>
                                 <option value="erro_cadastro">ERRO DE CADASTRO</option>
                                 <option value="erro_vigencia">ERRO DE VIGÊNCIA</option>

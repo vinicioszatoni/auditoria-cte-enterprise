@@ -1,20 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const apiController = require('../controllers/apiController');
-//const auditoriaController = require('./controllers/auditoriaController');
+const generalidadesController = require('../controllers/generalidadesController'); // NOVO
 
-// Rota de teste simples
-router.get('/teste', (req, res) => {
-    res.json({ mensagem: "A API está funcionando perfeitamente!" });
-});
-
-// Rota para LER dados do BigQuery (Agora é POST para receber os filtros do React)
+// Rotas Dashboard (BigQuery)
 router.post('/dados-dashboard', apiController.getDadosBigQuery);
-
-// Rota para GRAVAR ação do usuário
 router.post('/acao-usuario', apiController.postAcaoSheets);
 
-// Rota para GRAVAR auditoria no banco de dados PostgreSQL
+// ==========================================
+// ROTAS DE CADASTRO (PostgreSQL - AWS)
+// ==========================================
 // router.post('/api/gravar-auditoria', auditoriaController.gravarLoteAuditoria);
+router.post('/api/generalidades', generalidadesController.salvarGeneralidades);
+router.get('/api/generalidades', generalidadesController.buscarHistorico);
 
 module.exports = router;

@@ -44,7 +44,7 @@ export const PARAMETROS_LOGISTICOS = {
     'ALFA TRANSPORTES', 
     'ALPES', 
     'ALT TRANSPORTES', 
-    'APK TRANSPORTES', 
+    'APK TRANSPORTES',
     'ATIVA', 
     'AXON', 
     'BERTOLINI', 
