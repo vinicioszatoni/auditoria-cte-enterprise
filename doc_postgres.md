@@ -14,7 +14,7 @@ Estes dados alimentarão as visões analíticas no BigQuery (GCP) no formato D-1
 Tabela responsável pelo controle de autenticação (SSO / Local) e autorização (Roles) da aplicação.
 
 ```
-CREATE TABLE cad_usuarios (
+CREATE TABLE core.cad_usuarios (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(150) NOT NULL,
     email VARCHAR(150) UNIQUE NOT NULL,
@@ -38,7 +38,7 @@ CREATE INDEX idx_usuario_email ON cad_usuarios (email);
 Responsável por armazenar as decisões manuais e em massa (Aprovações e Reprovações) do time operacional sobre os CT-es divergentes.
 
 ```
-CREATE TABLE log_auditoria_taxas (
+CREATE TABLE core.log_auditoria_taxas (
     id SERIAL PRIMARY KEY,
     chave_cte VARCHAR(44) NOT NULL,
     transportador VARCHAR(150) NOT NULL,
@@ -67,7 +67,7 @@ Armazena restrições e taxas acessórias (TRT, TDE, TDA, Agendamento).
 **Arquitetura:** Utiliza *Soft Delete* e controle de versão através da coluna `id_grupo_tarifa` para garantir rastreabilidade histórica em caso de edição ou exclusão.
 
 ```
-CREATE TABLE cad_generalidades (
+CREATE TABLE core.cad_generalidades (
     id SERIAL PRIMARY KEY,
     id_grupo_tarifa UUID NOT NULL,       -- Agrupador para versionamento da mesma tarifa
     status_registro VARCHAR(20) DEFAULT 'ATIVO', -- 'ATIVO', 'EDITADO', 'EXCLUIDO'
@@ -108,7 +108,7 @@ CREATE INDEX idx_generalidades_pesquisa ON cad_generalidades (codigo_documento_a
 Estrutura desnormalizada (*Unpivoted*) gerada a partir do motor digitalizador de planilhas. Transforma colunas horizontais de faixa de peso em linhas (Coluna `des_faixa_peso`), otimizando o cruzamento de dados no BigQuery.
 
 ```
-CREATE TABLE cad_tabelas_frete (
+CREATE TABLE core.cad_tabelas_frete (
     id SERIAL PRIMARY KEY,
     id_rota VARCHAR(255) NOT NULL,       -- Chave estruturada: Ex: PR-SC 341-351
     documento_ariba_ws VARCHAR(100),
@@ -191,3 +191,117 @@ CREATE TABLE cad_tabelas_frete (
 CREATE INDEX idx_tbl_frete_rota ON cad_tabelas_frete (documento_ariba_ws, transportadora, uf_origem, cidade_origem, uf_destino, cidade_destino);
 
 ```
+
+
+### 4. Tabela: Cadastro de usuarios na tabela core.cad_usuarios
+
+INSERT INTO core.cad_usuarios (
+    nome, 
+    email, 
+    senha_hash, 
+    funcao, 
+    departamento, 
+    role, 
+    sso_provider, 
+    status
+) VALUES 
+(
+    'Vinicios Cordeiro', 
+    'vinicios.cordeiro@grupoboticario.com.br', 
+    'Vinicios@123', 
+    'Especialista Logística I', 
+    'Transportes', 
+    'ADMIN', 
+    'LOCAL', 
+    'ATIVO'
+),
+(
+    'Josney Komiak', 
+    'josney.komiak@grupoboticario.com.br', 
+    'Josney@123', 
+    'Especialista Logística I', 
+    'Transportes', 
+    'USER', 
+    'LOCAL', 
+    'ATIVO'
+),
+(
+    'Meyre Coelho', 
+    'meyre.coelho@grupoboticario.com.br', 
+    'Meyre@123', 
+    'Especialista Logística I', 
+    'Transportes', 
+    'USER', 
+    'LOCAL', 
+    'ATIVO'
+),
+(
+    'Julia Ianoski', 
+    'julia.ianoski@grupoboticario.com.br', 
+    'Julia@123', 
+    'Analista Logística I', 
+    'Transportes', 
+    'USER', 
+    'LOCAL', 
+    'ATIVO'
+),
+(
+    'Mateus Gomes Saldanha', 
+    'mateus.saldanha@grupoboticario.com.br', 
+    'Mateus@123', 
+    'Analista Logística I', 
+    'Transportes', 
+    'USER', 
+    'LOCAL', 
+    'ATIVO'
+),
+(
+    'Agatha Basso Iark', 
+    'agatha.iark@grupoboticario.com.br', 
+    'Agatha@123', 
+    'Analista Logística I', 
+    'Transportes', 
+    'USER', 
+    'LOCAL', 
+    'ATIVO'
+),
+(
+    'Thiago Silva', 
+    'thiago.moreira@grupoboticario.com.br', 
+    'Thiago@123', 
+    'Coordenador Logística', 
+    'Transportes', 
+    'VIEWER', 
+    'LOCAL', 
+    'ATIVO'
+),
+(
+    'Marcos Segatti', 
+    'marcos.segatti@grupoboticario.com.br', 
+    'Marcos@123', 
+    'Gerente Sr Transportes', 
+    'Transportes', 
+    'VIEWER', 
+    'LOCAL', 
+    'ATIVO'
+),
+(
+    'Diego Fortuna', 
+    'diego.fortuna@grupoboticario.com.br', 
+    'Diego@123', 
+    'Gerente Sr Transportes', 
+    'Transportes', 
+    'VIEWER', 
+    'LOCAL', 
+    'ATIVO'
+),
+(
+    'Henrique Ceolatto', 
+    'henrique.ceolatto@grupoboticario.com.br', 
+    'Henrique@123', 
+    'Especialista Logística I', 
+    'Transportes', 
+    'USER', 
+    'LOCAL', 
+    'ATIVO'
+);

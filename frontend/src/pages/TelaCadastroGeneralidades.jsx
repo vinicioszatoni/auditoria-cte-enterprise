@@ -106,12 +106,12 @@ export default function TelaCadastroGeneralidades({ usuarioLogado }) {
   const getCidadesPorUFs = (ufsArray) => [...new Set(dadosIbge.filter(d => ufsArray.includes(d.slg_uf)).map(d => d.nome_cidade).filter(Boolean))].sort();
   const getMesorregioesPorUFs = (ufsArray) => [...new Set(dadosIbge.filter(d => ufsArray.includes(d.slg_uf)).map(d => `${d.mesorregiao} (${d.slg_uf})`).filter(Boolean))].sort();
 
-  useEffect(() => {
+  /*useEffect(() => {
     if (form.ufsDestino.length > 1 && form.abrangenciaDestino === 'Fixo') setForm(prev => ({ ...prev, abrangenciaDestino: 'Varias', detalheDestino: [] }));
     else if (form.ufsDestino.length === 0) setForm(prev => ({ ...prev, abrangenciaDestino: 'Fixo', detalheDestino: [] }));
     else setForm(prev => ({ ...prev, detalheDestino: [] }));
     setBuscaCidade('');
-  }, [form.ufsDestino, form.abrangenciaDestino]);
+  }, [form.ufsDestino, form.abrangenciaDestino]);*/
 
   const iniciarCadastro = (tipo) => { setTipoCadastro(tipo); setForm(formInicial); setPasso(1); setMenuTiposAberto(false); };
   const handleBlurMoeda = (e, campo) => { const val = e.target.value; if (val) setForm({ ...form, [campo]: parseFloat(val).toFixed(2) }); };
@@ -440,7 +440,30 @@ export default function TelaCadastroGeneralidades({ usuarioLogado }) {
               
               <div className="col-md-2">
                 <label className="form-label w-100 mb-1" style={{ fontSize: '10px', fontWeight: '800', color: 'var(--text-aux)', textTransform: 'uppercase' }}>UFs Destino</label>
-                <CheckboxList options={getUFsUnicas()} selected={form.ufsDestino} onChange={(val) => setForm({...form, ufsDestino: val})} height="175px" />
+                <CheckboxList 
+                  options={getUFsUnicas()} 
+                  selected={form.ufsDestino} 
+                  onChange={(val) => {
+                    let novaAbrangencia = form.abrangenciaDestino;
+                    let novoDetalhe = [];
+                    
+                    if (val.length > 1 && form.abrangenciaDestino === 'Fixo') {
+                      novaAbrangencia = 'Varias';
+                    } else if (val.length === 0) {
+                      novaAbrangencia = 'Fixo';
+                    }
+                    
+                    setForm({ 
+                      ...form, 
+                      ufsDestino: val, 
+                      abrangenciaDestino: novaAbrangencia, 
+                      detalheDestino: novoDetalhe,
+                      usuarioCadastro: usuarioLogado?.email // Uso prático do parâmetro
+                    });
+                    setBuscaCidade('');
+                  }} 
+                  height="175px" 
+                />
               </div>
               
               <div className={tipoCadastro === 'TRT' ? 'col-md-10' : 'col-md-7'}>

@@ -184,7 +184,7 @@ export default function TelaGeracaoTemplate({ usuarioLogado, historicoGeneralida
   const [alerta, setAlerta] = useState({ visivel: false, mensagem: '' });
 
   // RECUPERAÇÃO DE MEMÓRIA (Passo 3)
-  useEffect(() => {
+  /*useEffect(() => {
     if (rotasEmEdicao.length > 0) {
       const rota = rotasEmEdicao[0];
       const targetRegiao = regiaoEmEdicao === 'Ambas' ? 'Capital' : regiaoEmEdicao;
@@ -192,26 +192,40 @@ export default function TelaGeracaoTemplate({ usuarioLogado, historicoGeneralida
       if (salvoNoBackup) setTarifas(salvoNoBackup);
       else setTarifas(estadoTarifasInicial);
     }
-  }, [regiaoEmEdicao, rotasEmEdicao]);
+  }, [regiaoEmEdicao, rotasEmEdicao]);*/
+
+  const handleMudancaRotaOuRegiao = (novasRotas, novaRegiao) => {
+  setRotasEmEdicao(novasRotas);
+  setRegiaoEmEdicao(novaRegiao);
+  
+  if (novasRotas.length > 0) {
+    const rota = novasRotas[0];
+    const targetRegiao = novaRegiao === 'Ambas' ? 'Capital' : novaRegiao;
+    const salvoNoBackup = tarifasSalvas[`${rota}-${targetRegiao}`];
+    setTarifas(salvoNoBackup || estadoTarifasInicial);
+  }
+};
 
   useEffect(() => {
     api.get('/api/rotas-ibge').then(res => setDadosIbge(res.data)).catch(err => console.error("Erro BQ:", err)).finally(() => setCarregandoMalha(false));
   }, []);
 
   // CÁLCULO DE KPIs DINÂMICO BASEADO NO HISTÓRICO
-  const kpisTabelas = useMemo(() => {
-    let ativas = 0, vencimentoProximo = 0;
-    let transportadores = new Set();
-    const hoje = new Date();
-    const sessentaDias = new Date(); sessentaDias.setDate(hoje.getDate() + 60);
+  const [dataReferencia, setDataReferencia] = useState(new Date());
 
-    historicoTabelas.forEach(tab => {
-      // Validação dinâmica para garantir que o dashboard lida com o passar do tempo
-      let statusReal = tab.status;
-      if (tab.dataFim) {
-        const dataF = new Date(tab.dataFim + 'T23:59:59');
-        if (hoje > dataF) statusReal = 'Vencida';
-      }
+  const kpisTabelas = useMemo(() => {
+  let ativas = 0, vencimentoProximo = 0;
+  let transportadores = new Set();
+  
+  const sessentaDias = new Date(dataReferencia); 
+  sessentaDias.setDate(dataReferencia.getDate() + 60);
+
+  historicoTabelas.forEach(tab => {
+    let statusReal = tab.status;
+    if (tab.dataFim) {
+      const dataF = new Date(tab.dataFim + 'T23:59:59');
+      if (dataReferencia > dataF) statusReal = 'Vencida';
+    }
 
       if (statusReal === 'Vigente') ativas++;
       if (tab.transportador && tab.transportador !== 'N/A') transportadores.add(tab.transportador);
@@ -222,14 +236,14 @@ export default function TelaGeracaoTemplate({ usuarioLogado, historicoGeneralida
       }
     });
 
-    return { ativas, vencimentoProximo, transportadoresUnicos: transportadores.size, reajusteMedio: '0.0%' };
-  }, [historicoTabelas]);
+   return { ativas, vencimentoProximo, transportadoresUnicos: transportadores.size, reajusteMedio: '0.0%' };
+}, [historicoTabelas, dataReferencia]);
 
   const getUFsUnicas = () => [...new Set(dadosIbge.map(d => d.slg_uf))].sort();
   const getCidadesPorUFs = (ufsArray) => [...new Set(dadosIbge.filter(d => ufsArray.includes(d.slg_uf)).map(d => d.nome_cidade))].sort();
   const getMesorregioesPorUFs = (ufsArray) => [...new Set(dadosIbge.filter(d => ufsArray.includes(d.slg_uf)).map(d => `${d.mesorregiao} (${d.slg_uf})`))].sort();
 
-  useEffect(() => { setParametros(prev => ({ ...prev, fluxo: '' })); }, [parametros.etapa]);
+  /*useEffect(() => { setParametros(prev => ({ ...prev, fluxo: '' })); }, [parametros.etapa]); */
   useEffect(() => {
     if (rotas.ufsOrigem.length > 1 && rotas.abrangenciaOrigem === 'Fixo') setRotas(prev => ({ ...prev, abrangenciaOrigem: 'Varias', detalheOrigem: [] }));
     else if (rotas.ufsOrigem.length === 0) setRotas(prev => ({ ...prev, abrangenciaOrigem: 'Fixo', detalheOrigem: [] }));
@@ -646,7 +660,7 @@ export default function TelaGeracaoTemplate({ usuarioLogado, historicoGeneralida
                 <div className="row g-3 mb-3">
                   <div className="col-md-3">
                     <label className="form-label w-100 mb-1" style={{ fontSize: '10px', fontWeight: '800', color: 'var(--text-aux)', textTransform: 'uppercase' }}>Etapa Logística</label>
-                    <select className="form-select form-select-sm shadow-sm fw-bold py-2" value={parametros.etapa} onChange={e => setParametros({...parametros, etapa: e.target.value})} style={{ fontSize: '12px', borderRadius: 'var(--radius-md)', backgroundColor: 'rgba(255,255,255,0.6)', border: '1px solid rgba(0,0,0,0.05)' }}>
+                    <select className="form-select form-select-sm shadow-sm fw-bold py-2" value={parametros.etapa} onChange={e => setParametros({...parametros, etapa: e.target.value, fluxo: ''})} style={{ fontSize: '12px', borderRadius: 'var(--radius-md)', backgroundColor: 'rgba(255,255,255,0.6)', border: '1px solid rgba(0,0,0,0.05)' }}>
                       <option value="">Selecione...</option>
                       {PARAMETROS_LOGISTICOS.etapas.map(e => <option key={e} value={e}>{e}</option>)}
                     </select>
@@ -800,11 +814,11 @@ export default function TelaGeracaoTemplate({ usuarioLogado, historicoGeneralida
                 <div className="p-2 mb-2 border shadow-sm d-flex gap-2 mx-auto flex-shrink-0" style={{ backgroundColor: 'rgba(255,255,255,0.8)', width: 'fit-content', borderRadius: '3px' }}>
                   <div style={{width: '240px'}}>
                     <label className="mb-1 w-100 text-center" style={{fontSize: '10px', color: '#5F6D78', fontWeight: 'normal', textTransform: 'uppercase'}}>1. Rota(s) a Preencher</label>
-                    <DropdownCheckRotas label="Selecione..." options={rotasRequeridas} selected={rotasEmEdicao} onChange={setRotasEmEdicao} />
+                    <DropdownCheckRotas label="Selecione..." options={rotasRequeridas} selected={rotasEmEdicao} onChange={(rotas) => handleMudancaRotaOuRegiao(rotas, regiaoEmEdicao)} />
                   </div>
                   <div style={{width: '240px'}}>
                     <label className="mb-1 w-100 text-center" style={{fontSize: '10px', color: '#5F6D78', fontWeight: 'normal', textTransform: 'uppercase'}}>2. Região Destino</label>
-                    <select className="form-select bg-white shadow-sm fw-bold px-2" value={regiaoEmEdicao} onChange={e=>setRegiaoEmEdicao(e.target.value)} style={{fontSize: '11px', color: '#5F6D78', height: '32px', borderRadius: '3px', border: '1px solid rgba(0,0,0,0.1)'}}>
+                    <select className="form-select bg-white shadow-sm fw-bold px-2" value={regiaoEmEdicao} onChange={e => handleMudancaRotaOuRegiao(rotasEmEdicao, e.target.value)} style={{fontSize: '11px', color: '#5F6D78', height: '32px', borderRadius: '3px', border: '1px solid rgba(0,0,0,0.1)'}}>
                       <option value="Capital">Apenas Capital</option>
                       <option value="Interior">Apenas Interior</option>
                       <option value="Ambas">Ambas (Copiar Valores)</option>

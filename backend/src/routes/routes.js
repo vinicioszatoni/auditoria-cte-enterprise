@@ -4,6 +4,14 @@ const apiController = require('../controllers/apiController');
 const generalidadesController = require('../controllers/generalidadesController');
 const auditoriaController = require('../controllers/auditoriaController');
 const tabelasController = require('../controllers/tabelasController');
+const authController = require('../controllers/authController'); // INCLUÍDO
+
+// ==========================================
+// ROTAS DE AUTENTICAÇÃO E USUÁRIOS
+// ==========================================
+router.post('/auth/login', authController.login);
+router.post('/auth/atualizar-senha', authController.atualizarSenha);
+router.get('/auth/sso', authController.loginSSO); // Em prod pode ser via redirect (SAML/OAuth)
 
 // ==========================================
 // ROTAS DE ANALYTICS (BigQuery GCP)
@@ -13,17 +21,10 @@ router.post('/acao-usuario', apiController.postAcaoSheets);
 
 // ==========================================
 // ROTAS DE LOGÍSTICA E PRECIFICAÇÃO (PostgreSQL AWS)
-// Nota: Os controllers já estão mapeados no app.use('/api', routes), então não repita "/api" aqui.
 // ==========================================
-
-// 1. Auditoria
 router.post('/gravar-auditoria', auditoriaController.gravarLoteAuditoria);
-
-// 2. Generalidades e Restrições
 router.post('/generalidades', generalidadesController.salvarGeneralidades);
 router.get('/generalidades', generalidadesController.buscarHistorico);
-
-// 3. Tabelas de Frete (Motor Digitalizador)
 router.post('/tabela-frete', tabelasController.salvarTabelaFrete);
 
 module.exports = router;
