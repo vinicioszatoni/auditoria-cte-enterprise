@@ -1,0 +1,20 @@
+aws:
+  version: 2
+  enabled: true
+  secretsmanager:
+    enabled: true
+    secrets:
+      - name: 'credentials'
+        description: 'Todas as credenciais da aplicacao transitoria para auditoria de ctes'
+  rds:
+    enabled: true
+    instances:
+      - name: 'auditoria-cte-backend'
+        dbInstanceClass: 'db.t4g.micro'
+        engine: 'postgres'
+        dbname: 'auditoria_cte_db'
+        allocatedStorage: 20
+        engineVersion: '18.3'
+    features:
+      vaultAlquimia:
+        enabled: true

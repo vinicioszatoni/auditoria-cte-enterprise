@@ -1,0 +1,53 @@
+app:
+  secretStoreAdvanced:
+    enabled: true
+    keys:
+      - secretName: auditoria-cte-backend-auditoria-cte-backend-app-rds-conn-string
+        systemManagerKeysRemap:
+          - property: 'endpoint'
+            secretKey: 'AUDITORIA_CTE_BACKEND_HOST'
+          - property: 'port'
+            secretKey: 'AUDITORIA_CTE_BACKEND_PORT'
+          - property: 'password'
+            secretKey: 'AUDITORIA_CTE_BACKEND_PASSWORD'
+          - property: 'username'
+            secretKey: 'AUDITORIA_CTE_BACKEND_USER'
+      - secretName: 'auditoria-cte-backend-credentials'
+        systemManagerKeys:
+          - INITIAL_VALUE
+  env:
+    - name: OTEL_SERVICE_NAME
+      value: auditoria-cte-backend
+    - name: LOG_LEVEL_ENABLED
+      value: 'ERROR'
+    - name: NODE_ENV
+      value: production
+    - name: AUDITORIA_CTE_BACKEND_DATABASE
+      value: auditoria_cte_db
+  annotations:
+    instrumentation.opentelemetry.io/inject-nodejs: 'gb-otel/otel-instrumentation'
+  version: 1
+  secretStore:
+    enabled: true
+    keys:
+      - secretName: global-secret-newrelic-license-key
+        envName: NEW_RELIC_LICENSE_KEY
+  service:
+    enabled: true
+  port: 3000
+  resources:
+    cpu: 80m
+    memory: 80Mi
+  probe:
+    path: /healthcheck
+    port: http
+    initialDelaySeconds: 15
+    timeoutSeconds: 3
+    periodSeconds: 15
+  nodeSelector:
+    kubernetes.io/arch: arm64
+  tolerations:
+    - key: 'eksNodePool.arch'
+      operator: 'Equal'
+      value: 'arm64'
+      effect: 'NoSchedule'

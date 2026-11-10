@@ -1,0 +1,432 @@
+{
+  "templates": [
+    {
+      "name": "alquimia-template-github",
+      "version": "0.0.1",
+      "source": {
+        "name": "github",
+        "key": "https://github.com/grupoboticario/alquimia-template-github",
+        "options": {
+          "baseUrl": "https://github.com",
+          "baseUrlApi": "https://api.github.com"
+        }
+      }
+    },
+    {
+      "name": "alquimia-template-backstage",
+      "version": "1.0.0",
+      "source": {
+        "name": "github",
+        "key": "https://github.com/grupoboticario/alquimia-template-backstage",
+        "options": {
+          "baseUrl": "https://github.com",
+          "baseUrlApi": "https://api.github.com"
+        }
+      },
+      "partials": [
+        {
+          "name": "k8s:app-deploy"
+        },
+        {
+          "name": "remove-npmrc"
+        }
+      ]
+    },
+    {
+      "name": "alquimia-template-typescript-k8s",
+      "version": "1.0.0",
+      "source": {
+        "name": "github",
+        "key": "https://github.com/grupoboticario/alquimia-template-typescript-k8s",
+        "options": {
+          "baseUrl": "https://github.com",
+          "baseUrlApi": "https://api.github.com"
+        }
+      },
+      "partials": [
+        {
+          "name": "fastify"
+        }
+      ]
+    },
+    {
+      "name": "alquimia-template-typescript-resources",
+      "version": "1.0.0",
+      "source": {
+        "name": "github",
+        "key": "https://github.com/grupoboticario/alquimia-template-typescript-resources",
+        "options": {
+          "baseUrl": "https://github.com",
+          "baseUrlApi": "https://api.github.com"
+        }
+      },
+      "partials": [
+        {
+          "name": "sequelize"
+        },
+        {
+          "name": "update-lock-file"
+        }
+      ]
+    },
+    {
+      "name": "alquimia-template-crossplane-aws",
+      "version": "1.0.0",
+      "source": {
+        "name": "github",
+        "key": "https://github.com/grupoboticario/alquimia-template-crossplane-aws",
+        "options": {
+          "baseUrl": "https://github.com",
+          "baseUrlApi": "https://api.github.com"
+        }
+      },
+      "partials": [
+        {
+          "name": "infra"
+        },
+        {
+          "name": "rds"
+        },
+        {
+          "name": "secretsmanager"
+        }
+      ]
+    }
+  ],
+  "globalParameters": [
+    {
+      "name": "component",
+      "value": "auditoria-cte-backend"
+    },
+    {
+      "name": "componentDescription",
+      "value": "Backend para a solução transitória de auditoria de ctes"
+    },
+    {
+      "name": "domain",
+      "value": "plataforma-logistica"
+    },
+    {
+      "name": "system",
+      "value": "plataforma-logistica"
+    },
+    {
+      "name": "team"
+    },
+    {
+      "name": "environment",
+      "value": {
+        "metadata": {
+          "namespace": "default",
+          "annotations": {
+            "backstage.io/managed-by-location": "url:https://github.com/grupoboticario/alquimia-dev-platform/tree/main/domains/plataforma-logistica/environments/aws/us-east-1/environment.prd.yaml",
+            "backstage.io/managed-by-origin-location": "url:https://github.com/grupoboticario/alquimia-dev-platform/blob/main/domains/plataforma-logistica/location.yaml",
+            "backstage.io/view-url": "https://github.com/grupoboticario/alquimia-dev-platform/tree/main/domains/plataforma-logistica/environments/aws/us-east-1/environment.prd.yaml",
+            "backstage.io/edit-url": "https://github.com/grupoboticario/alquimia-dev-platform/edit/main/domains/plataforma-logistica/environments/aws/us-east-1/environment.prd.yaml",
+            "backstage.io/source-location": "url:https://github.com/grupoboticario/alquimia-dev-platform/tree/main/domains/plataforma-logistica/environments/aws/us-east-1/"
+          },
+          "name": "aws-plataforma-logistica-prd",
+          "description": "Environment para ambiente prd",
+          "uid": "d8bea0c1-56c9-45db-a4ca-f0e863e13145",
+          "etag": "141efb5c3853958346957776e7738e3640a3efb5"
+        },
+        "apiVersion": "alquimia.gb.tech/v1alpha1",
+        "kind": "Environment",
+        "spec": {
+          "type": "aws",
+          "owner": "devops",
+          "domain": "plataforma-logistica",
+          "crossplane": {
+            "provider": "aws",
+            "version": "v0.42.0"
+          },
+          "aws": {
+            "accountId": "647051202209",
+            "kmsCmkArn": "arn:aws:kms:us-east-1:154548531805:key/mrk-410b05e174d24c4c9fef6a83b0d7fb52",
+            "waf": {
+              "backend": {
+                "arn": "arn:aws:wafv2:us-east-1:647051202209:regional/webacl/acl-backend/4e51bf27-43d4-40f2-9d59-4606d5b41e29"
+              },
+              "frontend": {
+                "arn": "arn:aws:wafv2:us-east-1:647051202209:global/webacl/acl-frontend/2d9e045c-bdec-442d-bb71-b67d67ae3a79"
+              },
+              "webAclFrontendDefaultArn": "arn:aws:wafv2:us-east-1:647051202209:global/webacl/acl-frontend/2d9e045c-bdec-442d-bb71-b67d67ae3a79",
+              "webAclBackendDefaultArn": "arn:aws:wafv2:us-east-1:647051202209:regional/webacl/acl-backend/4e51bf27-43d4-40f2-9d59-4606d5b41e29"
+            },
+            "eks": {
+              "clusters": {
+                "default": {
+                  "name": "eks-pl-prd",
+                  "oidc": "D2D0069511DA35FC99435694C724C0F4"
+                }
+              }
+            },
+            "ingress": {
+              "defaultGroup": "disabled"
+            },
+            "features": {
+              "hybridAutoscaling": {
+                "mode": "hpa-cpu-vpa-memory",
+                "maxChange": "30%",
+                "vpa": {
+                  "updateMode": "Off"
+                }
+              },
+              "vaultAlquimia": {
+                "compositionRef": "vault-rds-secret-engine-stable",
+                "version": "v1"
+              }
+            },
+            "cloudfront": {
+              "oai": "E3SDM5P1NIKQ77",
+              "responseHeadersPolicyId": "d3855251-9cbd-49ee-a8ad-c6adb10e5f56"
+            },
+            "securityGroups": {
+              "rdsInstanceMysql": "sg-04a841d17e8a181ca",
+              "rdsInstancePostgres": "sg-04a841d17e8a181ca",
+              "lambdaInternal": "sg-07c065de5bdffdb2b"
+            },
+            "region": "us-east-1",
+            "charts": {
+              "app-v1": {
+                "name": "gb-app-v1",
+                "revision": "1.19.1"
+              },
+              "infra-v1": {
+                "name": "gb-infra-v1",
+                "revision": "1.27.8"
+              },
+              "infra-v2": {
+                "name": "gb-infra-v2",
+                "revision": "2.33.5"
+              }
+            },
+            "vpcs": {
+              "local": {
+                "id": "vpc-0680a84b0be25d0d9",
+                "subnets": {
+                  "private": [
+                    "subnet-0f58009e183b61dcd",
+                    "subnet-08334db501ff38112",
+                    "subnet-011250ed7cab0d763"
+                  ]
+                }
+              },
+              "ram": {
+                "id": "vpc-030d1d3f9bdd1fbaf",
+                "subnets": {
+                  "private": [
+                    "subnet-0f0ff96bc07c94c89",
+                    "subnet-04e69a7c8919bc0d3",
+                    "subnet-059b23cca770a553c"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "relations": [
+          {
+            "type": "isFromDomain",
+            "targetRef": "domain:default/plataforma-logistica"
+          },
+          {
+            "type": "ownedBy",
+            "targetRef": "group:default/devops"
+          }
+        ],
+        "name": "aws-plataforma-logistica-prd",
+        "stage": "prd",
+        "parameters": {
+          "needs": [
+            "cd_hml"
+          ],
+          "if": "${{ success() && github.ref == 'refs/heads/main' }}"
+        },
+        "infraDefaults": {
+          "metadata": {
+            "namespace": "default",
+            "annotations": {
+              "backstage.io/managed-by-location": "url:https://github.com/grupoboticario/alquimia-dev-platform/tree/main/defaults/infra/aws/prd.yaml",
+              "backstage.io/managed-by-origin-location": "url:https://github.com/grupoboticario/alquimia-dev-platform/blob/main/defaults/infra/location.yaml",
+              "backstage.io/view-url": "https://github.com/grupoboticario/alquimia-dev-platform/tree/main/defaults/infra/aws/prd.yaml",
+              "backstage.io/edit-url": "https://github.com/grupoboticario/alquimia-dev-platform/edit/main/defaults/infra/aws/prd.yaml",
+              "backstage.io/source-location": "url:https://github.com/grupoboticario/alquimia-dev-platform/tree/main/defaults/infra/aws/"
+            },
+            "name": "aws-prd",
+            "description": "Configurações padrão das contas AWS em ambientes produtivos",
+            "uid": "d454357d-aea6-475e-8dfb-08dfdcfd6f8d",
+            "etag": "1f90fd4f6f8ef72a8cab714f644b032108296a91"
+          },
+          "apiVersion": "alquimia.gb.tech/v1alpha1",
+          "kind": "InfraDefaults",
+          "spec": {
+            "apiGateway": {
+              "endpoint": {
+                "accessMode": "strict",
+                "securityPolicy": "SecurityPolicy_TLS13_2025_EDGE"
+              }
+            },
+            "app": {
+              "dnsPolicy": "ClusterFirst",
+              "image": {
+                "pullPolicy": "IfNotPresent"
+              },
+              "ingress": {
+                "scope": "private"
+              },
+              "service": {
+                "protocol": "TCP",
+                "targetPort": "http",
+                "type": "NodePort"
+              },
+              "strategy": "RollingUpdate",
+              "eventhub": {
+                "producerBrokers": "eventhub-0-pub.grupoboticario.digital:9096,eventhub-1-pub.grupoboticario.digital:9096,eventhub-2-pub.grupoboticario.digital:9096",
+                "consumerBrokers": "eventhub-0-sub.grupoboticario.digital:9096,eventhub-1-sub.grupoboticario.digital:9096,eventhub-2-sub.grupoboticario.digital:9096",
+                "schemaRegistryUrl": "https://api-private.grupoboticario.com.br/global/v1/event-hub/schema-registry"
+              }
+            },
+            "cache": {
+              "dbSubnetGroupName": "crossplane-subnet-group",
+              "logDeliveryConfiguration": {
+                "engine": {
+                  "destinationType": "cloudwatch-logs",
+                  "logFormat": "json",
+                  "logType": "engine-log"
+                },
+                "slow": {
+                  "destinationType": "cloudwatch-logs",
+                  "logFormat": "json",
+                  "logType": "slow-log"
+                }
+              },
+              "preferredMaintenanceWindow": "mon:02:40-mon:03:40",
+              "snapshotWindow": "01:00-02:00"
+            },
+            "cloudfront": {
+              "cachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+              "httpVersion": "http2and3",
+              "originRequestPolicyId": "88a5eaf4-2fd4-4709-b370-b4c650ea3fcf",
+              "priceClass": "PriceClass_All",
+              "responseHeadersPolicyId": "eaab4381-ed33-4a86-88ca-d9558dc6cd63"
+            },
+            "docdb": {
+              "dbSubnetGroupName": "crossplane-subnet-group"
+            },
+            "eventhub": {
+              "kafkaBootstrapServers": "eventhub-0-sub.grupoboticario.digital:9096,eventhub-1-sub.grupoboticario.digital:9096,eventhub-2-sub.grupoboticario.digital:9096",
+              "schemaRegistryUrl": "https://api-private.grupoboticario.digital/global/v1/event-hub/schema-registry"
+            },
+            "lambdaLayers": {
+              "regions": {
+                "eu-south-2": {
+                  "lambdaInsights": [
+                    {
+                      "type": "architecture",
+                      "architectures": {
+                        "x86_64": "arn:aws:lambda:eu-south-2:352183217350:layer:LambdaInsightsExtension:40",
+                        "arm64": "arn:aws:lambda:eu-south-2:352183217350:layer:LambdaInsightsExtension-Arm64:18"
+                      }
+                    }
+                  ],
+                  "otel": [
+                    {
+                      "type": "language",
+                      "languages": {
+                        "java": "arn:aws:lambda:eu-south-2:184161586896:layer:opentelemetry-javaagent-0_21_0:1",
+                        "nodejs": "arn:aws:lambda:eu-south-2:184161586896:layer:opentelemetry-nodejs-0_23_0:1",
+                        "python": "arn:aws:lambda:eu-south-2:184161586896:layer:opentelemetry-python-0_21_0:1"
+                      }
+                    }
+                  ]
+                },
+                "us-east-1": {
+                  "lambdaInsights": [
+                    {
+                      "type": "architecture",
+                      "architectures": {
+                        "x86_64": "arn:aws:lambda:us-east-1:580247275435:layer:LambdaInsightsExtension:64",
+                        "arm64": "arn:aws:lambda:us-east-1:580247275435:layer:LambdaInsightsExtension-Arm64:31"
+                      }
+                    }
+                  ],
+                  "otel": [
+                    {
+                      "type": "language",
+                      "languages": {
+                        "java": "arn:aws:lambda:us-east-1:184161586896:layer:opentelemetry-javaagent-0_21_0:1",
+                        "nodejs": "arn:aws:lambda:us-east-1:184161586896:layer:opentelemetry-nodejs-0_23_0:1",
+                        "python": "arn:aws:lambda:us-east-1:184161586896:layer:opentelemetry-python-0_21_0:1"
+                      }
+                    }
+                  ]
+                },
+                "sa-east-1": {
+                  "lambdaInsights": [
+                    {
+                      "type": "architecture",
+                      "architectures": {
+                        "x86_64": "arn:aws:lambda:sa-east-1:580247275435:layer:LambdaInsightsExtension:63",
+                        "arm64": "arn:aws:lambda:sa-east-1:580247275435:layer:LambdaInsightsExtension-Arm64:29"
+                      }
+                    }
+                  ],
+                  "otel": [
+                    {
+                      "type": "language",
+                      "languages": {
+                        "java": "arn:aws:lambda:sa-east-1:184161586896:layer:opentelemetry-javaagent-0_21_0:1",
+                        "nodejs": "arn:aws:lambda:sa-east-1:184161586896:layer:opentelemetry-nodejs-0_23_0:1",
+                        "python": "arn:aws:lambda:sa-east-1:184161586896:layer:opentelemetry-python-0_21_0:1"
+                      }
+                    }
+                  ]
+                },
+                "us-east-2": {
+                  "lambdaInsights": [
+                    {
+                      "type": "architecture",
+                      "architectures": {
+                        "x86_64": "arn:aws:lambda:us-east-2:580247275435:layer:LambdaInsightsExtension:64",
+                        "arm64": "arn:aws:lambda:us-east-2:580247275435:layer:LambdaInsightsExtension-Arm64:33"
+                      }
+                    }
+                  ],
+                  "otel": [
+                    {
+                      "type": "language",
+                      "languages": {
+                        "java": "arn:aws:lambda:us-east-2:184161586896:layer:opentelemetry-javaagent-0_21_0:1",
+                        "nodejs": "arn:aws:lambda:us-east-2:184161586896:layer:opentelemetry-nodejs-0_23_0:1",
+                        "python": "arn:aws:lambda:us-east-2:184161586896:layer:opentelemetry-python-0_21_0:1"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "loglevel": "error",
+            "mq": {
+              "deploymentMode": "CLUSTER_MULTI_AZ",
+              "engineType": "RabbitMQ",
+              "hostInstanceType": "mq.m7g.medium",
+              "maintenanceWindowStartTime": {
+                "dayOfWeek": "FRIDAY",
+                "timeOfDay": "03:00"
+              }
+            },
+            "rds": {
+              "caCertificateIdentifier": "rds-ca-rsa2048-g1",
+              "dbSubnetGroupName": "crossplane-subnet-group",
+              "preferredBackupWindow": "04:00-06:00",
+              "preferredMaintenanceWindow": "mon:07:00-mon:09:00",
+              "storageType": "gp3"
+            }
+          }
+        },
+        "observability": "newrelic-plataforma-logistica-prd"
+      }
+    }
+  ]
+}

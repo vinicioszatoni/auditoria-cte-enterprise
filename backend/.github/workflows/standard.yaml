@@ -1,0 +1,125 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+name: Standard
+
+env:
+  database-name: auditoria_cte_db
+  instance-name: auditoria-cte-backend
+
+jobs:
+  ci:
+    name: CI - Build and Test
+    runs-on: [vs-plataforma-logistica-arm]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          registry-url: https://npm.pkg.github.com/
+      - name: Install Dependencies
+        run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GHA_PACKAGES }}
+      - name: Lint App
+        run: npm run lint
+      - name: Test App
+        run: npm run test
+      - name: Build App
+        run: npm run build
+      - name: Sonar Analysis
+        uses: grupoboticario/actions-ci-sonarcloud@v1
+        if: ${{ vars.SONAR_ENABLED == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GHA_PACKAGES }}
+          SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
+  ci_docker:
+    name: CI - Docker
+    runs-on: [vs-plataforma-logistica-arm]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Docker Build and Push
+        uses: grupoboticario/actions-ci-alquimia@v2
+        with:
+          build-platform: linux/arm64
+          docker-secrets: |
+            NODE_AUTH_TOKEN=${{ secrets.GHA_PACKAGES }}
+          dockerfile-path: dockerfiles/Dockerfile
+  cd_hml:
+    name: CD - hml
+    if: ${{ success() && github.event_name != 'pull_request' && github.actor != 'dependabot[bot]' }}
+    needs: [ci, ci_docker]
+    runs-on: [vs-plataforma-logistica-arm]
+    environment:
+      name: hml
+      url: ${{ steps.actions-cd-app.outputs.environment-url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Deploy Infra
+        uses: grupoboticario/actions-cd-alquimia@v2
+        id: actions-cd-infra
+        with:
+          environment: aws-plataforma-logistica-hml
+          type: infra
+      - name: Apply DB Migrations
+        uses: grupoboticario/actions-cd-db-migration@v2
+        with:
+          db-name: ${{ env.database-name }}
+          instance-name: ${{ env.instance-name }}
+          environment: aws-plataforma-logistica-hml
+          language: node
+          node-auth-token: ${{ secrets.GHA_PACKAGES }}
+          package-manager: npm
+      - name: Deploy App
+        uses: grupoboticario/actions-cd-alquimia@v2
+        id: actions-cd-app
+        with:
+          environment: aws-plataforma-logistica-hml
+          type: app
+  cd_prd:
+    name: CD - prd
+    if: ${{ success() && github.ref == 'refs/heads/main' }}
+    needs: [cd_hml]
+    runs-on: [vs-plataforma-logistica-arm]
+    environment:
+      name: prd
+      url: ${{ steps.actions-cd-app.outputs.environment-url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Deploy Infra
+        uses: grupoboticario/actions-cd-alquimia@v2
+        id: actions-cd-infra
+        with:
+          environment: aws-plataforma-logistica-prd
+          type: infra
+      - name: Apply DB Migrations
+        uses: grupoboticario/actions-cd-db-migration@v2
+        with:
+          db-name: ${{ env.database-name }}
+          instance-name: ${{ env.instance-name }}
+          environment: aws-plataforma-logistica-prd
+          language: node
+          node-auth-token: ${{ secrets.GHA_PACKAGES }}
+          package-manager: npm
+      - name: Deploy App
+        uses: grupoboticario/actions-cd-alquimia@v2
+        id: actions-cd-app
+        with:
+          environment: aws-plataforma-logistica-prd
+          type: app

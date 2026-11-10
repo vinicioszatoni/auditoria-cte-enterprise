@@ -345,7 +345,7 @@ exports.getDadosBigQuery = async (req, res) => {
             bigquery.createQueryJob({ query: queryMatrizFarol }).then(job => job[0].getQueryResults()),
             bigquery.createQueryJob({ query: queryTabelaAuxiliar }).then(job => job[0].getQueryResults()),
             bigquery.createQueryJob({ query: queryTabela }).then(job => job[0].getQueryResults()),
-            bigquery.createQueryJob({ query: queryTaxasMensal }).then(job => job[0].getQueryResults()),
+            bigquery.createQueryJob({ query: queryTaxasMensal }).then(job => job[0].getQueryResults())
         ]);
 
         const evolucaoFormatada = resEvolucao.map(item => ({ ...item, pct: item.faturadoR > 0 ? Number(((item.auditadoR / item.faturadoR) * 100).toFixed(1)) : 0 }));

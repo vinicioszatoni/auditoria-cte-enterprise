@@ -15,12 +15,12 @@ const configBd = process.env.DATABASE_URL
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
         host: process.env.DB_HOST || 'localhost',
-        port: process.env.DB_PORT || 5432,
+        port: process.env.DB_PORT || 5432
       };
 
 const pool = new Pool(configBd);
 
-pool.on('error', (err, client) => {
+pool.on('error', (err) => {
     console.error('Erro crítico no PostgreSQL:', err);
 });
 
@@ -35,5 +35,5 @@ pool.connect((err, client, release) => {
 
 module.exports = {
     pool,
-    query: (text, params) => pool.query(text, params),
+    query: (text, params) => pool.query(text, params)
 };

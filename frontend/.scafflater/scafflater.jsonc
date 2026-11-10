@@ -1,0 +1,51 @@
+{
+  "templates": [
+    {
+      "name": "alquimia-template-static-website-react-flora",
+      "version": "1.0.0",
+      "source": {
+        "name": "github",
+        "key": "https://github.com/grupoboticario/alquimia-template-static-website-react-flora",
+        "options": {
+          "baseUrl": "https://github.com",
+          "baseUrlApi": "https://api.github.com"
+        }
+      }
+    },
+    {
+      "name": "alquimia-template-github",
+      "version": "0.0.1",
+      "source": {
+        "name": "github",
+        "key": "https://github.com/grupoboticario/alquimia-template-github",
+        "options": {
+          "baseUrl": "https://github.com",
+          "baseUrlApi": "https://api.github.com"
+        }
+      }
+    },
+    {
+      "name": "alquimia-template-crossplane-aws",
+      "version": "1.0.0",
+      "source": {
+        "name": "github",
+        "key": "https://github.com/grupoboticario/alquimia-template-crossplane-aws",
+        "options": {
+          "baseUrl": "https://github.com",
+          "baseUrlApi": "https://api.github.com"
+        }
+      },
+      "partials": [
+        {
+          "name": "frontendv2"
+        }
+      ]
+    }
+  ],
+  "globalParameters": [
+    {
+      "name": "domain",
+      "value": "plataforma-logistica"
+    }
+  ]
+}

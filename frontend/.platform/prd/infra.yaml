@@ -1,0 +1,9 @@
+aws:
+  version: 2
+  enabled: true
+  frontendv2:
+    enabled: true
+    bucketName: 'auditoria-cte-frontend-prd-cit3o'
+    certificateArn: 'arn:aws:acm:us-east-1:647051202209:certificate/6e275e00-954f-4a78-81a0-0d99ca4e46e0'
+    dns: 'auditoria-cte.grupoboticario.com.br'
+    hostedZoneId: 'Z0489106285MXRLCKN51G'
