@@ -30,9 +30,9 @@ export default defineConfig(
     },
     rules: {
       semi: ['error', 'always'],
-      'comma-dangle': ['error', 'never'],
-      '@typescript-eslint/no-require-imports': 'off', // Permite o uso de require() no backend Node.js
-      '@typescript-eslint/no-explicit-any': 'off' // Desliga os avisos de "any" nos arquivos .ts
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-explicit-any': ['warn', {ignoreRestArgs: true}],
+      'comma-dangle': ['error', 'never']
     }
   }
 );

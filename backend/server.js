@@ -1,9 +1,6 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors'); 
-const helmet = require('helmet'); 
-const rateLimit = require('express-rate-limit');
-
 const routes = require('./src/routes/routes');
 const rotasIbge = require('./src/routes/rotasIbge'); 
 

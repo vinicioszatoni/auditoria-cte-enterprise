@@ -13,7 +13,6 @@ let server: FastifyInstance;
 
 beforeAll(async () => {
   server = await appSetup();
-  await server.listen({port: 8080, host: '0.0.0.0'});
 });
 
 afterAll(async () => {

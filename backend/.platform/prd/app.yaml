@@ -14,7 +14,9 @@ app:
             secretKey: 'AUDITORIA_CTE_BACKEND_USER'
       - secretName: 'auditoria-cte-backend-credentials'
         systemManagerKeys:
-          - INITIAL_VALUE
+          - GOOGLE_CLOUD_PROJECT_ID
+          - SPREADSHEET_BUFFER_ID
+          - GOOGLE_APPLICATION_CREDENTIALS
   env:
     - name: OTEL_SERVICE_NAME
       value: auditoria-cte-backend

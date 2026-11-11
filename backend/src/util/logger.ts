@@ -17,7 +17,7 @@ const logger = winston.createLogger({
 });
 
 const createConsoleOverride =
-  (loggerMethod: unknown) =>
+  (loggerMethod: (...args: unknown[]) => void) =>
   (...args: unknown[]) => {
     if (args.length === 0) return;
     const [first, ...rest] = args;

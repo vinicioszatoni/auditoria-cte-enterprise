@@ -1,5 +1,6 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import type {OpenAPIV3} from 'openapi-types';
 import {loadPackageJson} from './util';
 
 const getSchemas = (): Array<Schema> => {
@@ -16,9 +17,9 @@ const getSchemas = (): Array<Schema> => {
   return schemas;
 };
 
-interface Schema {
-  id: string;
-}
+type Schema = OpenAPIV3.SchemaObject & {
+  $id: string;
+};
 
 interface OpenApiDefinition {
   routePrefix: string;
@@ -29,7 +30,7 @@ interface OpenApiDefinition {
       version: string;
     };
     components: {
-      schemas: Record<string, unknown>;
+      schemas: Record<string, OpenAPIV3.SchemaObject>;
     };
   };
   uiConfig: {
@@ -41,9 +42,9 @@ interface OpenApiDefinition {
 }
 
 export const getOpenapiDefinition = (): OpenApiDefinition => {
-  const schemas: Record<string, unknown> = {};
+  const schemas: Record<string, OpenAPIV3.SchemaObject> = {};
   getSchemas().forEach((schema: Schema) => {
-    schemas[schema.id] = schema;
+    schemas[schema.$id] = schema;
   });
 
   const packageInfo = loadPackageJson();
@@ -71,7 +72,7 @@ export const getOpenapiDefinition = (): OpenApiDefinition => {
   };
 };
 
-const getPageSchema: unknown = (itemSchema: {properties: unknown}) => {
+const getPageSchema = (itemSchema: {properties: Record<string, unknown>}) => {
   return {
     type: 'object',
     properties: {
