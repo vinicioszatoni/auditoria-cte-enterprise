@@ -14,7 +14,11 @@
     "test": "NODE_ENV=test node --experimental-vm-modules ./node_modules/jest/bin/jest.js --detectOpenHandles --randomize --forceExit --coverage --maxWorkers=50% --silent",
     "cp:sslbundle": "npx cpx \"./src/services/*.pem\" ./dist/src/services",
     "apply-db-migrations": "npx sequelize-cli db:migrate",
-    "apply-db-migrations-seeds": "npx sequelize-cli db:seed:all"
+    "apply-db-migrations-seeds": "npx sequelize-cli db:seed:all",
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "migrate:create": "node-pg-migrate create",
+    "migrate:up": "node-pg-migrate up"
   },
   "keywords": [],
   "author": "Grupo Boticário - Transportes GB | vinicios.cordeiro@grupoboticario.com.br",
@@ -34,6 +38,7 @@
     "fs-extra": "^11.1.4",
     "googleapis": "^186.0.0",
     "helmet": "^7.1.0",
+    "node-pg-migrate": "^9.0.0",
     "pg": "^8.17.1",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.7",

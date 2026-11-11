@@ -1,0 +1,82 @@
+exports.shorthands = undefined;
+
+exports.up = (pgm) => {
+  pgm.sql(`
+    CREATE TABLE IF NOT EXISTS core.cad_tabelas_frete (
+        id SERIAL PRIMARY KEY,
+        id_rota VARCHAR(255) NOT NULL,
+        documento_ariba_ws VARCHAR(100),
+        dt_abertura_negociacao DATE,
+        dt_inicio_vigencia DATE,
+        dt_final_vigencia DATE,
+        modelo_contratacao VARCHAR(100),
+        tp_negociacao VARCHAR(100),
+        etapa_logistica VARCHAR(100),
+        fluxo_logistico VARCHAR(100),
+        free_time_hrs INT DEFAULT 0,
+        prazo_entrega_dias INT DEFAULT 0,
+        prazo_pagamento_dias INT DEFAULT 0,
+        transportadora VARCHAR(150),
+        tp_veiculo VARCHAR(100),
+        carroceria VARCHAR(100),
+        combustivel VARCHAR(100),
+        incoterm VARCHAR(10),
+        carga_perigosa VARCHAR(10),
+        seguro_carga VARCHAR(50),
+        uf_origem VARCHAR(2),
+        cidade_origem VARCHAR(150),
+        cep_origem VARCHAR(20),
+        uf_destino VARCHAR(2),
+        cidade_destino VARCHAR(150),
+        cep_destino_inicial VARCHAR(20),
+        cep_destino_final VARCHAR(20),
+        mesorregiao_destino VARCHAR(150),
+        fator_conversao_peso_cubado VARCHAR(50),
+        des_faixa_peso VARCHAR(50) NOT NULL,
+        vlr_frete_faixa NUMERIC(12, 4) DEFAULT 0,
+        vlr_frete_lotacao NUMERIC(12, 4) DEFAULT 0,
+        gris_pct NUMERIC(10, 4) DEFAULT 0,
+        advlr_pct NUMERIC(10, 4) DEFAULT 0,
+        trt_pct NUMERIC(10, 4) DEFAULT 0,
+        trt_vlr_fixo NUMERIC(10, 4) DEFAULT 0,
+        trt_vlr_minimo NUMERIC(10, 4) DEFAULT 0,
+        tde_pct NUMERIC(10, 4) DEFAULT 0,
+        tde_vlr_fixo NUMERIC(10, 4) DEFAULT 0,
+        tde_vlr_minimo NUMERIC(10, 4) DEFAULT 0,
+        tda_pct NUMERIC(10, 4) DEFAULT 0,
+        tda_vlr_fixo NUMERIC(10, 4) DEFAULT 0,
+        tda_vlr_minimo NUMERIC(10, 4) DEFAULT 0,
+        tso_pct NUMERIC(10, 4) DEFAULT 0,
+        tso_vlr_fixo NUMERIC(10, 4) DEFAULT 0,
+        tso_vlr_minimo NUMERIC(10, 4) DEFAULT 0,
+        suframa_vlr_fixo NUMERIC(10, 4) DEFAULT 0,
+        seguro_fluvial_pct NUMERIC(10, 4) DEFAULT 0,
+        seguro_fluvial_vlr_fixo NUMERIC(10, 4) DEFAULT 0,
+        seguro_fluvial_vlr_minimo NUMERIC(10, 4) DEFAULT 0,
+        pedagio_vlr_fixo NUMERIC(10, 4) DEFAULT 0,
+        pedagio_fracao_kg NUMERIC(10, 4) DEFAULT 0,
+        pedagio_kg NUMERIC(10, 4) DEFAULT 0,
+        emex_pct NUMERIC(10, 4) DEFAULT 0,
+        emex_vlr_fixo NUMERIC(10, 4) DEFAULT 0,
+        emex_vlr_minimo NUMERIC(10, 4) DEFAULT 0,
+        emissao_cte_vlr_fixo NUMERIC(10, 2) DEFAULT 0,
+        tx_agendamento_vlr_fixo NUMERIC(10, 2) DEFAULT 0,
+        tx_armazenagem_vlr_fixo NUMERIC(10, 2) DEFAULT 0,
+        tx_paletizacao_vlr_fixo NUMERIC(10, 2) DEFAULT 0,
+        reentrega_pct NUMERIC(10, 4) DEFAULT 0,
+        devolucao_pct NUMERIC(10, 4) DEFAULT 0,
+        diaria_vlr_fixo NUMERIC(10, 2) DEFAULT 0,
+        carga_descarga_vlr_fixo NUMERIC(10, 2) DEFAULT 0,
+        usuario_cadastro VARCHAR(150),
+        email_cadastro VARCHAR(150),
+        dt_hr_cadastro_planilha_frete TIMESTAMP,
+        dt_hr_ingestao_banco TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_tbl_frete_rota ON core.cad_tabelas_frete (documento_ariba_ws, transportadora, uf_origem, cidade_origem, uf_destino, cidade_destino);
+  `);
+};
+
+exports.down = (pgm) => {
+  pgm.sql(`DROP TABLE IF EXISTS core.cad_tabelas_frete CASCADE;`);
+};

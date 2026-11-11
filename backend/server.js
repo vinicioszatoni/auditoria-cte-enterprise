@@ -2,10 +2,11 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors'); 
 const routes = require('./src/routes/routes');
-const rotasIbge = require('./src/routes/rotasIbge'); 
+const rotasIbge = require('./src/routes/rotasIbge');
 
 const app = express();
 
+const executarMigrations = require('./src/config/runMigrations');
 // ============================================================================
 // 1. CONFIGURAÇÕES DE SEGURANÇA BÁSICA E PAYLOADS
 // ============================================================================
@@ -49,9 +50,16 @@ app.use('/', rotasIbge); // Mantido o mapeamento raiz para manter a view do Ibge
 // ============================================================================
 // 4. INICIALIZAÇÃO DO SERVIDOR (Agnóstico à Nuvem)
 // ============================================================================
-// A Nuvem sempre injetará a porta via process.env.PORT, se não houver, cai no 3000 (Local)
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor rodando na porta ${PORT} [Ambiente: ${process.env.NODE_ENV || 'LOCAL'}]`);
-});
+executarMigrations()
+    .then(() => {
+        // Inicia o servidor SOMENTE APÓS as migrations finalizarem com sucesso
+        app.listen(PORT, () => {
+            console.log(`🚀 Servidor rodando na porta ${PORT} [Ambiente: ${process.env.NODE_ENV || 'LOCAL'}]`);
+        });
+    })
+    .catch(err => {
+        console.error("❌ Falha crítica ao iniciar o sistema:", err);
+        process.exit(1); // Derruba a aplicação se o banco falhar
+    });
