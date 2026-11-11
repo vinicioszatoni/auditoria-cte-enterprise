@@ -1,11 +1,13 @@
-// ARQUIVO: backend/config/runMigrations.js
+// ============================================================================
+// ARQUIVO: src/config/runMigrations.js
+// ============================================================================
 const runner = require('node-pg-migrate');
 const { pool } = require('./database');
 const path = require('path');
 
 async function executarMigrations() {
-    // Executa se achar a URL completa OU se achar o host do banco
-    if (!process.env.DATABASE_URL && !process.env.DB_HOST) {
+    // Executa se achar o host do banco usando a variável do Alquimia
+    if (!process.env.AUDITORIA_CTE_BACKEND_HOST) {
         console.warn("⚠️ Credenciais de banco não encontradas. Pulando migrations.");
         return;
     }
@@ -19,7 +21,7 @@ async function executarMigrations() {
             dir: path.join(__dirname, '../../migrations'),
             direction: 'up', 
             migrationsTable: 'pgmigrations', 
-            log: console.log // <--- Sem a vírgula aqui
+            log: console.log
         });
         console.log("✅ Migrations executadas com sucesso!");
     } catch (error) {

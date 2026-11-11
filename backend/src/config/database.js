@@ -1,22 +1,20 @@
 // ============================================================================
-// ARQUIVO: backend/config/database.js
+// ARQUIVO: src/config/database.js
 // ============================================================================
 const { Pool } = require('pg');
 
-// Lógica Híbrida: Se existir DATABASE_URL (AWS/GCP), usa a URL. 
-// Caso contrário, usa as variáveis locais do seu computador.
-const configBd = process.env.DATABASE_URL 
-    ? { 
-        connectionString: process.env.DATABASE_URL,
-        ssl: (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'homolog') ? { rejectUnauthorized: false } : false
-      }
-    : {
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME,
-        host: process.env.DB_HOST || 'localhost',
-        port: process.env.DB_PORT || 5432
-      };
+// Configuração utilizando as variáveis exclusivas do projeto (Alquimia / AWS)
+const configBd = {
+    user: process.env.AUDITORIA_CTE_BACKEND_USER,
+    password: process.env.AUDITORIA_CTE_BACKEND_PASSWORD,
+    database: process.env.AUDITORIA_CTE_BACKEND_NAME,
+    host: process.env.AUDITORIA_CTE_BACKEND_HOST || 'localhost',
+    port: process.env.AUDITORIA_CTE_BACKEND_PORT || 5432,
+    // SSL é obrigatório para bancos na nuvem (AWS/GCP) em ambientes superiores
+    ssl: (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'homolog') 
+        ? { rejectUnauthorized: false } 
+        : false
+};
 
 const pool = new Pool(configBd);
 
@@ -28,7 +26,7 @@ pool.connect((err, client, release) => {
     if (err) {
         console.error('❌ Erro de conexão com o PostgreSQL:', err.message);
     } else {
-        console.log(`✅ Conexão com PostgreSQL estabelecida! [Modo: ${process.env.DATABASE_URL ? 'CLOUD' : 'LOCAL'}]`);
+        console.log(`✅ Conexão com PostgreSQL estabelecida! [Ambiente: ${process.env.NODE_ENV || 'LOCAL'}]`);
         release();
     }
 });
